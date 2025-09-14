@@ -1,18 +1,25 @@
-import React from 'react';
-import logo from './logo.svg';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Layout from './components/Layout';
+import HomePage from './pages/HomePage';
+import LoginPage from './pages/LoginPage';
+import FilesPage from './pages/FilesPage';
+import FileDetailPage from './pages/FileDetailPage';
+import SettingsPage from './pages/SettingsPage';
+
 function App() {
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold text-blue-600 mb-4">
-          📚 SlideSage
-        </h1>
-        <p className="text-gray-600">
-          Transform your documents into intelligent summaries
-        </p>
-      </div>
-    </div>
-  )
+    <Router>
+      <Layout>
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/files" element={<FilesPage />} />
+          <Route path="/files/:id" element={<FileDetailPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
+        </Routes>
+      </Layout>
+    </Router>
+  );
 }
 
-export default App
+export default App;
