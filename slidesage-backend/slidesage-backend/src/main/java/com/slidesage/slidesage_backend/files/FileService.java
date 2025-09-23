@@ -4,20 +4,24 @@ import com.slidesage.slidesage_backend.files.dto.ExtractTextResponse;
 import com.slidesage.slidesage_backend.files.exception.BadRequestException;
 import com.slidesage.slidesage_backend.files.exception.ExtractionFailedException;
 import com.slidesage.slidesage_backend.files.exception.FileNotFoundException;
+import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.ByteArrayInputStream;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 
 @Service
 public class FileService {
+
     private final FileRepository repository;
-    public FileService(FileRepository repository) { this.repository = repository; }
+
+    public FileService(FileRepository repository) {
+        this.repository = repository;
+    }
 
     @Transactional
     public ExtractTextResponse extractText(UUID id) {
@@ -33,8 +37,7 @@ public class FileService {
         }
 
         String text;
-        try (ByteArrayInputStream in = new ByteArrayInputStream(file.getData());
-             PDDocument doc = PDDocument.load(in)) {
+        try (PDDocument doc = Loader.loadPDF(file.getData())) {
             PDFTextStripper stripper = new PDFTextStripper();
             text = stripper.getText(doc);
         } catch (Exception e) {
@@ -52,15 +55,19 @@ public class FileService {
 
         String preview = normalized.length() <= 600 ? normalized : normalized.substring(0, 600) + "…";
         return new ExtractTextResponse(
-                file.getId(), file.getTextStatus(), normalized.length(), preview, file.getUpdatedAt()
+                file.getId(),
+                file.getTextStatus(),
+                normalized.length(),
+                preview,
+                file.getUpdatedAt()
         );
     }
 
     private static String normalize(String s) {
         if (s == null) return "";
         String unified = s.replace("\r\n", "\n");
-        unified = unified.replaceAll("\n{3,}", "\n\n");
-        unified = unified.replaceAll("[ \\t]{2,}", " ");
+        unified = unified.replaceAll("\n{3,}", "\n\n");  // collapse 3+ newlines to 2
+        unified = unified.replaceAll("[ \\t]{2,}", " "); // collapse long runs of spaces/tabs
         return unified.trim();
     }
 }
