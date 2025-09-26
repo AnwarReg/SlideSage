@@ -7,44 +7,82 @@ import java.util.UUID;
 @Entity
 @Table(name = "files")
 public class FileEntity {
-    @Id @Column(nullable = false, updatable = false)
+
+    @Id
+    @GeneratedValue
     private UUID id;
 
-    @Column(nullable = false) private String name;
-    @Column(nullable = false) private String contentType;
-    @Column(nullable = false) private long sizeBytes;
-    @Column(nullable = false, updatable = false) private Instant createdAt;
+    @Column(nullable = false)
+    private String filename;
 
-    @Lob @Column(nullable = false)
-    private byte[] data;
+    @Lob
+    @Column(nullable = false)
+    private byte[] fileData;   // raw PDF bytes
 
-    @Enumerated(EnumType.STRING) @Column(nullable = false)
-    private TextStatus textStatus = TextStatus.NONE;
+    @Lob
+    private String extractedText;  // extracted plain text
 
-    @Lob @Column(columnDefinition = "TEXT")
-    private String extractedText;
+    @Lob
+    private String summary;        // AI summary
 
+    @Enumerated(EnumType.STRING)
+    private TextStatus status;     // e.g. NONE, READY, ERROR
+
+    @Column(nullable = false)
+    private UUID userId;           // foreign key to users.id
+
+    private Instant createdAt;
     private Instant updatedAt;
 
+    // --- Constructors ---
     public FileEntity() {}
 
-    // getters/setters …
+    // convenience constructor
+    public FileEntity(String filename, byte[] fileData, UUID userId) {
+        this.filename = filename;
+        this.fileData = fileData;
+        this.userId = userId;
+        this.status = TextStatus.NONE;
+        this.createdAt = Instant.now();
+        this.updatedAt = Instant.now();
+    }
+
+    // --- Getters & Setters ---
     public UUID getId() { return id; }
     public void setId(UUID id) { this.id = id; }
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
-    public String getContentType() { return contentType; }
-    public void setContentType(String contentType) { this.contentType = contentType; }
-    public long getSizeBytes() { return sizeBytes; }
-    public void setSizeBytes(long sizeBytes) { this.sizeBytes = sizeBytes; }
-    public Instant getCreatedAt() { return createdAt; }
-    public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
-    public byte[] getData() { return data; }
-    public void setData(byte[] data) { this.data = data; }
-    public TextStatus getTextStatus() { return textStatus; }
-    public void setTextStatus(TextStatus textStatus) { this.textStatus = textStatus; }
+
+    public String getFilename() { return filename; }
+    public void setFilename(String filename) { this.filename = filename; }
+
+    public byte[] getFileData() { return fileData; }
+    public void setFileData(byte[] fileData) { this.fileData = fileData; }
+
     public String getExtractedText() { return extractedText; }
     public void setExtractedText(String extractedText) { this.extractedText = extractedText; }
+
+    public String getSummary() { return summary; }
+    public void setSummary(String summary) { this.summary = summary; }
+
+    public TextStatus getStatus() { return status; }
+    public void setStatus(TextStatus status) { this.status = status; }
+
+    public UUID getUserId() { return userId; }
+    public void setUserId(UUID userId) { this.userId = userId; }
+
+    public Instant getCreatedAt() { return createdAt; }
+    public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
+
     public Instant getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(Instant updatedAt) { this.updatedAt = updatedAt; }
+
+    @PrePersist
+    public void prePersist() {
+        createdAt = Instant.now();
+        updatedAt = Instant.now();
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        updatedAt = Instant.now();
+    }
 }
