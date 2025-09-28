@@ -3,7 +3,7 @@ package com.slidesage.slidesage_backend.files;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
+import com.slidesage.slidesage_backend.files.dto.ExtractTextResponse;
 import java.util.UUID;
 
 @RestController
