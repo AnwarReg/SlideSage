@@ -1,5 +1,21 @@
-// Mock data and API functions for development
+// API types matching Spring Boot backend
 
+export interface UploadResp {
+  id: string;
+  textStatus: "READY" | "EMPTY" | "ERROR" | "NONE";
+  extractedChars: number;
+  preview: string;
+  updatedAt: string;
+}
+
+export interface FileDetailResp extends UploadResp {
+  summaryStatus: "READY" | "PENDING" | "ERROR" | "NONE";
+  summary: string | null;
+  quizStatus: "READY" | "PENDING" | "ERROR" | "NONE";
+  quiz: any;
+}
+
+// Legacy interfaces for backward compatibility
 export interface FileSummary {
   summary: string;
   keyPoints: string[];
@@ -39,28 +55,104 @@ export const mockFiles: FileItem[] = [
   { id: '3', name: 'Research_Paper.docx', uploadDate: '2024-01-13', size: '1.8 MB', type: 'docx' }
 ];
 
-// Mock API functions (will be replaced with real API calls later)
+// Get API base URL from environment or use default
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080/api';
+
+// Utility function to get userId (you may need to adjust this based on your auth implementation)
+const getUserId = (): string => {
+  // For now, return a mock UUID - replace with actual user ID from your auth system
+  return 'user-123-456-789';
+};
+
+// Polling utility function
+const pollForStatus = async <T extends { summaryStatus?: string; quizStatus?: string }>(
+  fileId: string,
+  statusField: keyof T,
+  maxAttempts: number = 30,
+  intervalMs: number = 2000
+): Promise<T> => {
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    const response = await fetch(`${API_BASE_URL}/files/${fileId}`);
+    if (!response.ok) {
+      throw new Error(`Failed to get file details: ${response.statusText}`);
+    }
+    
+    const data: T = await response.json();
+    const status = data[statusField] as string;
+    
+    if (status === 'READY' || status === 'ERROR') {
+      return data;
+    }
+    
+    if (attempt < maxAttempts - 1) {
+      await new Promise(resolve => setTimeout(resolve, intervalMs));
+    }
+  }
+  
+  throw new Error('Polling timeout - operation did not complete');
+};
+
+// API functions for Spring Boot backend
 export const filesApi = {
   getFiles: async (): Promise<FileItem[]> => {
-    // Simulate API delay
+    // For now, return mock data - implement actual endpoint when available
     await new Promise(resolve => setTimeout(resolve, 500));
     return [...mockFiles];
   },
 
-  uploadFile: async (fileName: string): Promise<FileItem> => {
-    // Simulate upload delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // Generate fake file
-    return {
-      id: Date.now().toString(),
-      name: fileName,
-      uploadDate: new Date().toISOString().split('T')[0],
-      size: (Math.random() * 10 + 1).toFixed(1) + ' MB',
-      type: 'pdf'
-    };
-  }, // ← ADD THIS COMMA
+  uploadFile: async (file: File): Promise<UploadResp> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('userId', getUserId());
 
+    const response = await fetch(`${API_BASE_URL}/files`, {
+      method: 'POST',
+      body: formData,
+      // Don't set Content-Type - let browser handle multipart boundary
+    });
+
+    if (!response.ok) {
+      throw new Error(`Upload failed: ${response.statusText}`);
+    }
+
+    return response.json();
+  },
+
+  getFileDetails: async (fileId: string): Promise<FileDetailResp> => {
+    const response = await fetch(`${API_BASE_URL}/files/${fileId}`);
+    if (!response.ok) {
+      throw new Error(`Failed to get file details: ${response.statusText}`);
+    }
+    return response.json();
+  },
+
+  generateSummary: async (fileId: string): Promise<FileDetailResp> => {
+    const response = await fetch(`${API_BASE_URL}/files/${fileId}/ai/summary`, {
+      method: 'POST',
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to generate summary: ${response.statusText}`);
+    }
+
+    // Start polling for completion
+    return pollForStatus<FileDetailResp>(fileId, 'summaryStatus');
+  },
+
+  generateQuiz: async (fileId: string): Promise<FileDetailResp> => {
+    const response = await fetch(`${API_BASE_URL}/files/${fileId}/ai/quiz`, {
+      method: 'POST',
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to generate quiz: ${response.statusText}`);
+    }
+
+    // Start polling for completion
+    return pollForStatus<FileDetailResp>(fileId, 'quizStatus');
+  },
+
+  // Legacy functions for backward compatibility
   getSummary: async (fileId: string): Promise<FileSummary> => {
     await new Promise(resolve => setTimeout(resolve, 2000));
     return {
@@ -101,37 +193,5 @@ export const filesApi = {
         }
       ]
     };
-  },
-
-  generateQuiz: async (fileId: string): Promise<Quiz> => {
-    await new Promise(resolve => setTimeout(resolve, 3000));
-    return {
-      questions: [
-        {
-          id: 1,
-          question: "What is the primary advantage of deep learning over traditional machine learning?",
-          options: [
-            "Faster training time",
-            "Automatic feature extraction",
-            "Less data required",
-            "Simpler algorithms"
-          ],
-          correctAnswer: 1,
-          explanation: "Deep learning can automatically extract features from raw data, eliminating the need for manual feature engineering."
-        },
-        {
-          id: 2,
-          question: "Which algorithm is commonly used to train neural networks?",
-          options: [
-            "Linear regression",
-            "Decision trees",
-            "Backpropagation",
-            "K-means clustering"
-          ],
-          correctAnswer: 2,
-          explanation: "Backpropagation is the standard algorithm for training neural networks by computing gradients."
-        }
-      ]
-    };
   }
-}; // ← ADD THIS CLOSING BRACE
+};
