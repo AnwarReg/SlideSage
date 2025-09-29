@@ -101,21 +101,38 @@ export const filesApi = {
   },
 
   uploadFile: async (file: File): Promise<UploadResp> => {
+    console.log('Uploading file:', file.name, 'Size:', file.size, 'Type:', file.type);
+    console.log('API URL:', `${API_BASE_URL}/files`);
+    
     const formData = new FormData();
     formData.append('file', file);
     formData.append('userId', getUserId());
 
-    const response = await fetch(`${API_BASE_URL}/files`, {
-      method: 'POST',
-      body: formData,
-      // Don't set Content-Type - let browser handle multipart boundary
-    });
+    console.log('FormData prepared with file and userId');
 
-    if (!response.ok) {
-      throw new Error(`Upload failed: ${response.statusText}`);
+    try {
+      const response = await fetch(`${API_BASE_URL}/files`, {
+        method: 'POST',
+        body: formData,
+        // Don't set Content-Type - let browser handle multipart boundary
+      });
+
+      console.log('Response status:', response.status);
+      console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Upload error response:', errorText);
+        throw new Error(`Upload failed: ${response.status} ${response.statusText} - ${errorText}`);
+      }
+
+      const result = await response.json();
+      console.log('Upload success:', result);
+      return result;
+    } catch (error) {
+      console.error('Upload error:', error);
+      throw error;
     }
-
-    return response.json();
   },
 
   getFileDetails: async (fileId: string): Promise<FileDetailResp> => {
