@@ -60,8 +60,8 @@ const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:808
 
 // Utility function to get userId (you may need to adjust this based on your auth implementation)
 const getUserId = (): string => {
-  // For now, return a mock UUID - replace with actual user ID from your auth system
-  return 'user-123-456-789';
+  // For now, return a proper UUID format - replace with actual user ID from your auth system
+  return '123e4567-e89b-12d3-a456-426614174000';
 };
 
 // Polling utility function

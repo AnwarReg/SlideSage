@@ -16,6 +16,7 @@ public class FilesController {
         this.fileService = fileService;
     }
 
+    @CrossOrigin(origins = {"http://localhost:5173", "http://localhost:3000"})
     @PostMapping
     public ResponseEntity<?> uploadFile(
             @RequestParam("file") MultipartFile file,
