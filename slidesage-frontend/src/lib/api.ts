@@ -58,11 +58,8 @@ export const mockFiles: FileItem[] = [
 // Get API base URL from environment or use default
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080/api';
 
-// Utility function to get userId (you may need to adjust this based on your auth implementation)
-const getUserId = (): string => {
-  // For now, return a proper UUID format - replace with actual user ID from your auth system
-  return '123e4567-e89b-12d3-a456-426614174000';
-};
+// Placeholder UUID for development - will be replaced with actual user ID from auth system
+export const PLACEHOLDER_USER_ID = '550e8400-e29b-41d4-a716-446655440000';
 
 // Polling utility function
 const pollForStatus = async <T extends { summaryStatus?: string; quizStatus?: string }>(
@@ -100,13 +97,14 @@ export const filesApi = {
     return [...mockFiles];
   },
 
-  uploadFile: async (file: File): Promise<UploadResp> => {
+  uploadFile: async (file: File, userId: string): Promise<UploadResp> => {
     console.log('Uploading file:', file.name, 'Size:', file.size, 'Type:', file.type);
     console.log('API URL:', `${API_BASE_URL}/files`);
-    
+    console.log('User ID:', userId);
+     
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('userId', getUserId());
+    formData.append('userId', userId);
 
     console.log('FormData prepared with file and userId');
 

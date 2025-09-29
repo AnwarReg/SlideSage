@@ -15,6 +15,9 @@ public class FileEntity {
     @Column(nullable = false)
     private String filename;
 
+    @Column(nullable = false)
+    private String contentType;
+
     @Lob
     @Column(nullable = false)
     private byte[] fileData;   // raw PDF bytes

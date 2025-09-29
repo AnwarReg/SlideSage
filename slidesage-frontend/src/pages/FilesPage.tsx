@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { filesApi, FileItem, UploadResp } from '../lib/api';
+import { filesApi, FileItem, UploadResp, PLACEHOLDER_USER_ID } from '../lib/api';
 
 export default function FilesPage() {
   const [files, setFiles] = useState<FileItem[]>([]);
@@ -37,7 +37,7 @@ export default function FilesPage() {
     setUploadResult(null);
     
     try {
-      const result = await filesApi.uploadFile(selectedFile);
+      const result = await filesApi.uploadFile(selectedFile, PLACEHOLDER_USER_ID);
       setUploadResult(result);
       
       // Convert UploadResp to FileItem for the files list
