@@ -88,4 +88,13 @@ public class FileEntity {
     public void preUpdate() {
         updatedAt = Instant.now();
     }
+
+    public String getContentType() {
+        return contentType;
+    }
+
+    // Setter
+    public void setContentType(String contentType) {
+        this.contentType = contentType;
+    }
 }

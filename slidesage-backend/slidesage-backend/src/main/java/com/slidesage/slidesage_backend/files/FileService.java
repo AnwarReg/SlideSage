@@ -55,6 +55,8 @@ public class FileService {
         FileEntity entity = new FileEntity(file.getOriginalFilename(), bytes, userId);
         entity.setExtractedText(extracted);
         entity.setStatus(extracted.isBlank() ? TextStatus.EMPTY : TextStatus.READY);
+        entity.setContentType(file.getContentType());
+
         FileEntity saved = fileRepository.save(entity); // id is generated here
 
         // 5) Build lightweight response
