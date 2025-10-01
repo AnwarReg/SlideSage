@@ -1,9 +1,12 @@
 package com.slidesage.slidesage_backend.files;
 
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import com.slidesage.slidesage_backend.files.dto.ExtractTextResponse;
+
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -28,4 +31,7 @@ public class FilesController {
         // Return the DTO (status + id + preview, etc.)
         return ResponseEntity.ok(response);
     }
+
+
+
 }

@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -85,4 +86,10 @@ public class FileService {
         if (s.length() <= max) return s;
         return s.substring(0, max) + "…";
     }
+
+    @Transactional(readOnly = true)
+    public List<FileItemProjection> getUserFiles(UUID userId) {
+        return fileRepository.findAllByUserIdOrderByUpdatedAtDesc(userId);
+    }
+
 }
