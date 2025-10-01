@@ -79,93 +79,142 @@ export default function FilesPage() {
   }
 
   return (
-    <div className="py-8">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">My Files</h1>
-        <div className="space-x-2">
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".pdf"
-            onChange={handleFileSelect}
-            className="hidden"
-          />
-          <button
-            onClick={handleUploadClick}
-            disabled={uploading}
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
-          >
-            {uploading ? 'Uploading...' : '📁 Upload PDF'}
-          </button>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+      <div className="max-w-6xl mx-auto px-4 py-12">
+        <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-12">
+          <div className="mb-6 md:mb-0">
+            <h1 className="text-4xl font-bold text-gray-900 mb-2">My Files</h1>
+            <p className="text-gray-600 text-lg">Analyze your documents with AI-powered insights</p>
+          </div>
+          <div className="space-x-2">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".pdf"
+              onChange={handleFileSelect}
+              className="hidden"
+            />
+            <button
+              onClick={handleUploadClick}
+              disabled={uploading}
+              className="group relative bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-8 py-4 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:hover:scale-100 flex items-center space-x-3"
+            >
+              <span className="text-2xl group-hover:animate-bounce">📁</span>
+              <span>{uploading ? 'Uploading...' : 'Upload PDF'}</span>
+              {uploading && (
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white ml-2"></div>
+              )}
+            </button>
+          </div>
         </div>
-      </div>
 
-      {/* Upload Result Display */}
-      {uploadResult && (
-        <div className="mb-6 bg-green-50 border border-green-200 rounded-lg p-4">
-          <h3 className="font-semibold text-green-800 mb-2">📄 Upload Successful!</h3>
-          <div className="space-y-2 text-sm">
-            <div><strong>File ID:</strong> {uploadResult.id}</div>
-            <div><strong>Status:</strong> 
-              <span className={`ml-2 px-2 py-1 rounded text-xs ${
-                uploadResult.textStatus === 'READY' ? 'bg-green-100 text-green-800' :
-                uploadResult.textStatus === 'EMPTY' ? 'bg-yellow-100 text-yellow-800' :
-                uploadResult.textStatus === 'ERROR' ? 'bg-red-100 text-red-800' :
-                'bg-gray-100 text-gray-800'
-              }`}>
-                {uploadResult.textStatus}
-              </span>
-            </div>
-            <div><strong>Extracted Characters:</strong> {uploadResult.extractedChars.toLocaleString()}</div>
-            {uploadResult.preview && (
+        {/* Upload Result Display */}
+        {uploadResult && (
+          <div className="mb-8 bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-200 rounded-2xl p-6 shadow-lg">
+            <div className="flex items-center mb-4">
+              <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center mr-4">
+                <span className="text-2xl">✅</span>
+              </div>
               <div>
-                <strong>Preview:</strong>
-                <div className="mt-1 p-2 bg-white border rounded text-gray-700 text-xs max-h-24 overflow-y-auto">
+                <h3 className="text-xl font-bold text-emerald-800">Upload Successful!</h3>
+                <p className="text-emerald-600">Your document has been processed</p>
+              </div>
+            </div>
+            <div className="grid md:grid-cols-2 gap-4 mb-6">
+              <div className="bg-white/60 backdrop-blur-sm rounded-xl p-4">
+                <div className="text-sm font-medium text-gray-600 mb-1">File ID</div>
+                <div className="font-mono text-sm text-gray-800 break-all">{uploadResult.id}</div>
+              </div>
+              <div className="bg-white/60 backdrop-blur-sm rounded-xl p-4">
+                <div className="text-sm font-medium text-gray-600 mb-1">Status</div>
+                <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+                  uploadResult.textStatus === 'READY' ? 'bg-emerald-100 text-emerald-800' :
+                  uploadResult.textStatus === 'EMPTY' ? 'bg-amber-100 text-amber-800' :
+                  uploadResult.textStatus === 'ERROR' ? 'bg-red-100 text-red-800' :
+                  'bg-gray-100 text-gray-800'
+                }`}>
+                  {uploadResult.textStatus}
+                </span>
+              </div>
+              <div className="bg-white/60 backdrop-blur-sm rounded-xl p-4">
+                <div className="text-sm font-medium text-gray-600 mb-1">Extracted Characters</div>
+                <div className="text-lg font-bold text-gray-800">{uploadResult.extractedChars.toLocaleString()}</div>
+              </div>
+            </div>
+            {uploadResult.preview && (
+              <div className="bg-white/60 backdrop-blur-sm rounded-xl p-4 mb-6">
+                <div className="text-sm font-medium text-gray-600 mb-2">Preview</div>
+                <div className="p-4 bg-white border rounded-lg text-gray-700 text-sm max-h-32 overflow-y-auto leading-relaxed">
                   {uploadResult.preview}
                 </div>
               </div>
             )}
-            <div className="flex space-x-2 mt-3">
+            <div className="flex justify-center">
               <Link
                 to={`/files/${uploadResult.id}`}
-                className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700"
+                className="inline-flex items-center bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-8 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 space-x-2"
               >
-                View Details & Generate AI Content
+                <span>🚀</span>
+                <span>Analyze with AI</span>
               </Link>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {files.length === 0 ? (
-        <div className="text-center py-12 text-gray-500">
-          <p className="text-lg mb-2">No files uploaded yet</p>
-          <p>Click "Upload File" to get started</p>
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {files.map((file) => (
-            <Link
-              key={file.id}
-              to={`/files/${file.id}`}
-              className="block bg-white border rounded-lg p-4 hover:shadow-md transition-shadow"
+        {files.length === 0 ? (
+          <div className="text-center py-20">
+            <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <span className="text-4xl">📄</span>
+            </div>
+            <h3 className="text-2xl font-bold text-gray-800 mb-2">No files uploaded yet</h3>
+            <p className="text-gray-600 mb-8">Upload your first PDF to get started with AI analysis</p>
+            <button
+              onClick={handleUploadClick}
+              className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-8 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
             >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <span className="text-2xl">{getFileIcon(file.type)}</span>
-                  <div>
-                    <h3 className="font-medium text-gray-900">{file.name}</h3>
-                    <p className="text-sm text-gray-500">
-                      Uploaded {file.uploadDate} • {file.size}
-                    </p>
+              Upload Your First PDF
+            </button>
+          </div>
+        ) : (
+          <div className="grid gap-4 md:gap-6">
+            {files.map((file) => (
+              <Link
+                key={file.id}
+                to={`/files/${file.id}`}
+                className="group bg-white/70 backdrop-blur-sm border border-gray-200 rounded-2xl p-6 hover:shadow-xl hover:border-blue-300 transition-all duration-300 hover:scale-[1.02]"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-4">
+                    <div className="w-16 h-16 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                      <span className="text-3xl">{getFileIcon(file.type)}</span>
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-bold text-gray-900 mb-1 group-hover:text-blue-600 transition-colors">
+                        {file.name}
+                      </h3>
+                      <p className="text-gray-500 flex items-center space-x-4">
+                        <span className="flex items-center space-x-1">
+                          <span>📅</span>
+                          <span>{file.uploadDate}</span>
+                        </span>
+                        <span className="flex items-center space-x-1">
+                          <span>💾</span>
+                          <span>{file.size}</span>
+                        </span>
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-blue-500 group-hover:text-blue-600 group-hover:translate-x-1 transition-all duration-300">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
                   </div>
                 </div>
-                <div className="text-gray-400">→</div>
-              </div>
-            </Link>
-          ))}
-        </div>
-      )}
+              </Link>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

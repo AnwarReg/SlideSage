@@ -16,25 +16,59 @@ export default function Layout({ children }: LayoutProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-blue-600 text-white p-4">
-        <div className="flex items-center justify-between max-w-6xl mx-auto">
-          <Link to="/" className="text-xl font-bold">📚 SlideSage</Link>
-          <div className="space-x-4">
+    <div className="min-h-screen">
+      <nav className="bg-white/80 backdrop-blur-md border-b border-gray-200 sticky top-0 z-50 shadow-sm">
+        <div className="flex items-center justify-between max-w-7xl mx-auto px-6 py-4">
+          <Link to="/" className="flex items-center space-x-3 group">
+            <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+              <span className="text-white text-lg font-bold">📚</span>
+            </div>
+            <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+              SlideSage
+            </span>
+          </Link>
+          <div className="flex items-center space-x-6">
             {isLoggedIn ? (
               <>
-                <Link to="/files" className="hover:underline">Files</Link>
-                <Link to="/settings" className="hover:underline">Settings</Link>
-                <span className="text-blue-200">({userEmail})</span>
-                <button onClick={handleLogout} className="hover:underline">Logout</button>
+                <Link 
+                  to="/files" 
+                  className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200 flex items-center space-x-1"
+                >
+                  <span>📁</span>
+                  <span>Files</span>
+                </Link>
+                <Link 
+                  to="/settings" 
+                  className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200 flex items-center space-x-1"
+                >
+                  <span>⚙️</span>
+                  <span>Settings</span>
+                </Link>
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 bg-gradient-to-br from-gray-200 to-gray-300 rounded-full flex items-center justify-center">
+                    <span className="text-gray-600 text-sm">👤</span>
+                  </div>
+                  <span className="text-sm text-gray-600 font-medium">{userEmail}</span>
+                </div>
+                <button 
+                  onClick={handleLogout}
+                  className="bg-gradient-to-r from-red-500 to-red-600 text-white px-4 py-2 rounded-lg font-medium hover:shadow-lg transition-all duration-200 hover:scale-105"
+                >
+                  Logout
+                </button>
               </>
             ) : (
-              <Link to="/login" className="hover:underline">Login</Link>
+              <Link 
+                to="/login"
+                className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-2 rounded-lg font-medium hover:shadow-lg transition-all duration-200 hover:scale-105"
+              >
+                Login
+              </Link>
             )}
           </div>
         </div>
       </nav>
-      <main className="max-w-6xl mx-auto p-4">
+      <main>
         {children}
       </main>
     </div>
