@@ -9,6 +9,7 @@ import com.slidesage.slidesage_backend.files.dto.ExtractTextResponse;
 import java.util.List;
 import java.util.UUID;
 
+@CrossOrigin(origins = {"http://localhost:5173", "http://localhost:3000"})
 @RestController
 @RequestMapping("/api/files")
 public class FilesController {
@@ -19,7 +20,6 @@ public class FilesController {
         this.fileService = fileService;
     }
 
-    @CrossOrigin(origins = {"http://localhost:5173", "http://localhost:3000"})
     @PostMapping
     public ResponseEntity<?> uploadFile(
             @RequestParam("file") MultipartFile file,
