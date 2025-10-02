@@ -22,8 +22,7 @@ public class FilesController {
 
     @PostMapping
     public ResponseEntity<?> uploadFile(
-            @RequestParam("file") MultipartFile file,
-            @RequestParam("userId") UUID userId) {
+            @RequestParam("file") MultipartFile file) {
 
         // Delegate to service
         ExtractTextResponse response = fileService.saveAndExtract(file, userId);
