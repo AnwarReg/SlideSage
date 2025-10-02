@@ -25,7 +25,7 @@ public class FileService {
      * MVP flow: validate -> extract text -> save one row -> return small DTO
      */
     @Transactional
-    public ExtractTextResponse saveAndExtract(MultipartFile file, UUID userId) {
+    public ExtractTextResponse saveAndExtract(MultipartFile file) {
         // 1) Validate
         if (file == null || file.isEmpty()) {
             throw new IllegalArgumentException("No file uploaded.");
@@ -52,8 +52,10 @@ public class FileService {
             throw new RuntimeException("Failed to extract text from PDF.", e);
         }
 
+        UUID hardcodedUserId = UUID.fromString("123e4567-e89b-12d3-a456-426614174000");
+
         // 4) Build and save one entity (single write)
-        FileEntity entity = new FileEntity(file.getOriginalFilename(), bytes, userId);
+        FileEntity entity = new FileEntity(file.getOriginalFilename(), bytes, hardcodedUserId);
         entity.setExtractedText(extracted);
         entity.setStatus(extracted.isBlank() ? TextStatus.EMPTY : TextStatus.READY);
         entity.setContentType(file.getContentType());
