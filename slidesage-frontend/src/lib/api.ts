@@ -48,12 +48,27 @@ export interface FileItem {
   type: 'pdf' | 'pptx' | 'docx';
 }
 
-// Mock files data
-export const mockFiles: FileItem[] = [
-  { id: '1', name: 'Lecture_Notes_Ch1.pdf', uploadDate: '2024-01-15', size: '2.3 MB', type: 'pdf' },
-  { id: '2', name: 'Presentation_Slides.pptx', uploadDate: '2024-01-14', size: '5.1 MB', type: 'pptx' },
-  { id: '3', name: 'Research_Paper.docx', uploadDate: '2024-01-13', size: '1.8 MB', type: 'docx' }
-];
+// Utility function to format file size from bytes to human-readable string
+const formatFileSize = (bytes: number): string => {
+  if (bytes === 0) return '0 B';
+  
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+};
+
+// Utility function to extract file type from filename
+const getFileTypeFromName = (filename: string): 'pdf' | 'pptx' | 'docx' => {
+  const extension = filename.toLowerCase().split('.').pop();
+  switch (extension) {
+    case 'pdf': return 'pdf';
+    case 'pptx': return 'pptx';
+    case 'docx': return 'docx';
+    default: return 'pdf'; // Default to PDF
+  }
+};
 
 // Get API base URL from environment or use default
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080/api';
@@ -92,9 +107,39 @@ const pollForStatus = async <T extends { summaryStatus?: string; quizStatus?: st
 // API functions for Spring Boot backend
 export const filesApi = {
   getFiles: async (): Promise<FileItem[]> => {
-    // For now, return mock data - implement actual endpoint when available
-    await new Promise(resolve => setTimeout(resolve, 500));
-    return [...mockFiles];
+    try {
+      console.log('Fetching files from:', `${API_BASE_URL}/files`);
+      
+      const response = await fetch(`${API_BASE_URL}/files`);
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch files: ${response.status} ${response.statusText}`);
+      }
+      
+      const backendFiles = await response.json();
+      console.log('Backend response:', backendFiles);
+      
+      // Convert backend response to FileItem format
+      const fileItems: FileItem[] = backendFiles.map((file: any) => ({
+        id: file.id,
+        name: file.name || file.filename || `Document_${file.id.substring(0, 8)}.pdf`,
+        uploadDate: file.uploadDate 
+          ? new Date(file.uploadDate).toISOString().split('T')[0]
+          : file.updatedAt 
+          ? new Date(file.updatedAt).toISOString().split('T')[0]
+          : new Date().toISOString().split('T')[0],
+        size: file.size ? formatFileSize(file.size) : file.fileSize ? formatFileSize(file.fileSize) : 'Unknown',
+        type: file.type || getFileTypeFromName(file.name || file.filename || 'document.pdf')
+      }));
+      
+      console.log('Converted file items:', fileItems);
+      return fileItems;
+      
+    } catch (error) {
+      console.error('Failed to fetch files:', error);
+      // Return empty array on error instead of crashing
+      return [];
+    }
   },
 
   uploadFile: async (file: File, userId: string): Promise<UploadResp> => {

@@ -7,6 +7,6 @@ public interface FileItemProjection {
     UUID getId();            // maps to FileEntity.id
     String getFilename();    // maps to FileEntity.filename
     Instant getCreatedAt();  // maps to FileEntity.createdAt
-    long getFileSize();      // maps to FileEntity.file_data length (manual or query)
+    long getSize();      // maps to FileEntity.file_data length (manual or query)
     String getContentType(); // maps to FileEntity.contentType
 }
