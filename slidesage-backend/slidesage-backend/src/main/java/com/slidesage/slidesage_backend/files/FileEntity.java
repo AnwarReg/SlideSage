@@ -81,6 +81,15 @@ public class FileEntity {
     public Instant getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(Instant updatedAt) { this.updatedAt = updatedAt; }
 
+    public long getSize() {
+        return size;
+    }
+
+    public void setSize(long size) {
+        this.size = size;
+    }
+
+
     @PrePersist
     public void prePersist() {
         createdAt = Instant.now();
