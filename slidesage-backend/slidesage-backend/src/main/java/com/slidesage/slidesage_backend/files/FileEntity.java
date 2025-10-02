@@ -15,6 +15,9 @@ public class FileEntity {
     @Column(nullable = false)
     private String filename;
 
+    @Column(name = "size")
+    private long size;
+
     @Column(nullable = false)
     private String contentType;
 
