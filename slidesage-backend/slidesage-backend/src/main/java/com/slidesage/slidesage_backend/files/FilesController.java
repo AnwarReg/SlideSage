@@ -25,7 +25,7 @@ public class FilesController {
             @RequestParam("file") MultipartFile file) {
 
         // Delegate to service
-        ExtractTextResponse response = fileService.saveAndExtract(file, userId);
+        ExtractTextResponse response = fileService.saveAndExtract(file);
 
         // Return the DTO (status + id + preview, etc.)
         return ResponseEntity.ok(response);
