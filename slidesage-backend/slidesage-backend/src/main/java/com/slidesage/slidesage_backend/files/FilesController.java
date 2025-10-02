@@ -33,7 +33,7 @@ public class FilesController {
     }
 
 
-    @GetMapping("/files")
+    @GetMapping
     public List<FileItemProjection> getUserFiles(@RequestParam UUID userId) {
         return fileService.getUserFiles(userId);
     }
