@@ -73,9 +73,6 @@ const getFileTypeFromName = (filename: string): 'pdf' | 'pptx' | 'docx' => {
 // Get API base URL from environment or use default
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080/api';
 
-// Placeholder UUID for development - will be replaced with actual user ID from auth system
-export const PLACEHOLDER_USER_ID = '550e8400-e29b-41d4-a716-446655440000';
-
 // Polling utility function
 const pollForStatus = async <T extends { summaryStatus?: string; quizStatus?: string }>(
   fileId: string,
@@ -142,16 +139,14 @@ export const filesApi = {
     }
   },
 
-  uploadFile: async (file: File, userId: string): Promise<UploadResp> => {
+  uploadFile: async (file: File): Promise<UploadResp> => {
     console.log('Uploading file:', file.name, 'Size:', file.size, 'Type:', file.type);
     console.log('API URL:', `${API_BASE_URL}/files`);
-    console.log('User ID:', userId);
      
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('userId', userId);
 
-    console.log('FormData prepared with file and userId');
+    console.log('FormData prepared with file only');
 
     try {
       const response = await fetch(`${API_BASE_URL}/files`, {
