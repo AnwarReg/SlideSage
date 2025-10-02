@@ -32,10 +32,10 @@ public class FilesController {
         return ResponseEntity.ok(response);
     }
 
-
     @GetMapping
-    public List<FileItemProjection> getUserFiles(@RequestParam UUID userId) {
-        return fileService.getUserFiles(userId);
+    public List<FileItemProjection> getUserFiles() {
+        UUID hardcodedUserId = UUID.fromString("123e4567-e89b-12d3-a456-426614174000");
+        return fileService.getUserFiles(hardcodedUserId);
     }
 
 }
