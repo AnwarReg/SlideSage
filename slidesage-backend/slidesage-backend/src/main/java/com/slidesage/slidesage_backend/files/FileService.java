@@ -57,6 +57,8 @@ public class FileService {
         entity.setExtractedText(extracted);
         entity.setStatus(extracted.isBlank() ? TextStatus.EMPTY : TextStatus.READY);
         entity.setContentType(file.getContentType());
+        entity.setSize(file.getSize()); // in bytes
+
 
         FileEntity saved = fileRepository.save(entity); // id is generated here
 
