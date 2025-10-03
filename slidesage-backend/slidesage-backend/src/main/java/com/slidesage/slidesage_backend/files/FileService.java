@@ -121,5 +121,10 @@ public class FileService {
                 .orElseThrow(() -> new RuntimeException("File not found or not accessible"));
     }
 
-    
+    private String buildPreview(String text) {
+        if (text == null || text.isBlank()) return "";
+        int maxLength = 600;
+        return text.length() <= maxLength ? text : text.substring(0, maxLength) + "…";
+    }
+
 }
