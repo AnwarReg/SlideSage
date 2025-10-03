@@ -1,5 +1,6 @@
 package com.slidesage.slidesage_backend.files;
 
+import com.slidesage.slidesage_backend.files.dto.FileDetailResp;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -36,5 +37,12 @@ public class FilesController {
         UUID hardcodedUserId = UUID.fromString("123e4567-e89b-12d3-a456-426614174000");
         return fileService.getUserFiles(hardcodedUserId);
     }
+
+    @GetMapping("/{fileId}")
+    public FileDetailResp getFileDetails(@PathVariable UUID fileId) {
+        UUID hardcodedUserId = UUID.fromString("123e4567-e89b-12d3-a456-426614174000");
+        return fileService.getFileDetails(fileId, hardcodedUserId);
+    }
+
 
 }
