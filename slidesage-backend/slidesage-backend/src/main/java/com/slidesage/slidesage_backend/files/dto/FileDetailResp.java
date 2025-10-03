@@ -12,7 +12,6 @@ public class FileDetailResp {
     private String preview;
     private Instant updatedAt;
     private String summary;
-    private String quiz;
     private TextStatus summaryStatus;  // can reuse enum if statuses are the same
     private TextStatus quizStatus;
     private String contentType;
@@ -25,7 +24,6 @@ public class FileDetailResp {
             String preview,
             Instant updatedAt,
             String summary,
-            String quiz,
             String contentType,
             long size
     ) {
@@ -35,13 +33,12 @@ public class FileDetailResp {
         this.preview = preview;
         this.updatedAt = updatedAt;
         this.summary = summary;
-        this.quiz = quiz;
         this.contentType = contentType;
         this.size = size;
 
         // optionally, compute these from stored values later
         this.summaryStatus = summary != null ? TextStatus.READY : TextStatus.NONE;
-        this.quizStatus = quiz != null ? TextStatus.READY : TextStatus.NONE;
+
     }
 
     // --- Getters ---
@@ -51,7 +48,6 @@ public class FileDetailResp {
     public String getPreview() { return preview; }
     public Instant getUpdatedAt() { return updatedAt; }
     public String getSummary() { return summary; }
-    public String getQuiz() { return quiz; }
     public TextStatus getSummaryStatus() { return summaryStatus; }
     public TextStatus getQuizStatus() { return quizStatus; }
     public String getContentType() { return contentType; }
