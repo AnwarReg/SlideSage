@@ -1,5 +1,6 @@
 package com.slidesage.slidesage_backend.files;
 
+import com.slidesage.slidesage_backend.files.dto.FileDetailResp;
 import com.slidesage.slidesage_backend.files.dto.ExtractTextResponse;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -120,5 +121,5 @@ public class FileService {
                 .orElseThrow(() -> new RuntimeException("File not found or not accessible"));
     }
 
-
+    
 }
