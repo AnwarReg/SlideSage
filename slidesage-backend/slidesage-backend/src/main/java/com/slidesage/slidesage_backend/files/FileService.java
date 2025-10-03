@@ -96,4 +96,29 @@ public class FileService {
         return fileRepository.findAllByUserIdOrderByUpdatedAtDesc(userId);
     }
 
+
+    @Transactional(readOnly = true)
+    public FileDetailResp getFileDetails(UUID fileId, UUID userId) {
+        return fileRepository.findByIdAndUserId(fileId, userId)
+                .map(proj -> {
+                    String extractedText = proj.getExtractedText();
+                    int extractedChars = (extractedText == null) ? 0 : extractedText.length();
+                    String preview = buildPreview(extractedText);
+
+                    return new FileDetailResp(
+                            proj.getId(),
+                            proj.getStatus(),
+                            extractedChars,
+                            preview,
+                            proj.getUpdatedAt(),
+                            proj.getSummary(),
+                            proj.getQuiz(),
+                            proj.getContentType(),
+                            proj.getSize()
+                    );
+                })
+                .orElseThrow(() -> new RuntimeException("File not found or not accessible"));
+    }
+
+
 }
