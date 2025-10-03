@@ -5,9 +5,10 @@ import java.util.UUID;
 
 public interface FileDetailProjection {
     UUID getId();
-    TextStatus getStatus();       // maps to textStatus in frontend
-    String getExtractedText();    // used to calculate preview + extractedChars
+    TextStatus getStatus();
+    String getExtractedText();
     Instant getUpdatedAt();
+    String getSummary();
     String getContentType();
     long getSize();
 }
