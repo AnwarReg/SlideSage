@@ -113,7 +113,6 @@ public class FileService {
                             preview,
                             proj.getUpdatedAt(),
                             proj.getSummary(),
-                            proj.getQuiz(),
                             proj.getContentType(),
                             proj.getSize()
                     );
