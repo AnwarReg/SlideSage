@@ -45,3 +45,6 @@ out/
 ### OS ###
 .DS_Store
 Thumbs.db
+
+slidesage-backend/src/main/resources/application.properties
+src/main/resources/application.properties

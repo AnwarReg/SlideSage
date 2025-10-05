@@ -13,36 +13,68 @@ export default function FileDetailPage() {
   // Load file details on component mount
   useEffect(() => {
     if (id) {
+      console.log('Loading file details for ID:', id);
       loadFileDetails();
     }
   }, [id]);
 
   const loadFileDetails = async () => {
-    if (!id) return;
+    if (!id) {
+      console.error('No file ID provided');
+      return;
+    }
     
+    console.log('Fetching file details for ID:', id);
     setLoading(true);
     setError(null);
+    
     try {
       const details = await filesApi.getFileDetails(id);
+      console.log('File details loaded:', details);
       setFileDetails(details);
     } catch (error) {
       console.error('Failed to load file details:', error);
-      setError('Failed to load file details. Please try again.');
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      setError(`Failed to load file details: ${errorMessage}. Please try again.`);
     } finally {
       setLoading(false);
     }
   };
 
   const handleGenerateSummary = async () => {
-    if (!id || !fileDetails) return;
+    if (!id || !fileDetails) {
+      console.error('Missing ID or file details');
+      return;
+    }
     
+    console.log('Starting summary generation for file ID:', id);
     setLoadingSummary(true);
+    
     try {
+      // Call the API which will POST to /api/files/{id}/ai/summary and poll for completion
       const updatedDetails = await filesApi.generateSummary(id);
+      console.log('Summary generation completed:', updatedDetails);
+      
+      // Update the file details with the new summary and status
       setFileDetails(updatedDetails);
+      
+      // Show success message if summary was generated
+      if (updatedDetails.summaryStatus === 'READY' && updatedDetails.summary) {
+        console.log('Summary successfully generated and ready to display');
+      }
     } catch (error) {
       console.error('Failed to generate summary:', error);
-      alert('Failed to generate summary. Please try again.');
+      
+      // Show user-friendly error message
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      alert(`Failed to generate summary: ${errorMessage}. Please try again.`);
+      
+      // Optionally refresh file details to get current state
+      try {
+        await loadFileDetails();
+      } catch (refreshError) {
+        console.error('Failed to refresh file details after error:', refreshError);
+      }
     } finally {
       setLoadingSummary(false);
     }
@@ -300,12 +332,15 @@ export default function FileDetailPage() {
                   : 'AI-powered document summary'}
               </p>
               {loadingSummary || fileDetails.summaryStatus === 'PENDING' ? (
-                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto"></div>
-              ) : fileDetails.summaryStatus && (
+                <div className="flex items-center justify-center space-x-2">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+                  <span className="text-sm text-blue-600 font-medium">Processing...</span>
+                </div>
+              ) : fileDetails.summaryStatus && fileDetails.summaryStatus !== 'NONE' ? (
                 <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(fileDetails.summaryStatus)}`}>
                   {fileDetails.summaryStatus}
                 </span>
-              )}
+              ) : null}
             </div>
           </button>
 
