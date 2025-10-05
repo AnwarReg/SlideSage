@@ -8,7 +8,14 @@ import org.apache.pdfbox.text.PDFTextStripper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
+
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -160,4 +167,52 @@ public class FileService {
         return text.length() <= maxLength ? text : text.substring(0, maxLength) + "…";
     }
 
+    private String summarizeWithGemini(String text) {
+        try {
+            // Limit length for free API safety (optional)
+            if (text.length() > 4000) {
+                text = text.substring(0, 4000);
+            }
+
+            // JSON payload
+            String payload = """
+                {
+                  "contents": [{
+                    "parts": [{"text": "Summarize this text briefly:\\n%s"}]
+                  }]
+                }
+                """.formatted(text.replace("\"", "'"));
+
+            // HTTP Request
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + geminiApiKey))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(payload))
+                    .build();
+
+            // Send
+            HttpClient client = HttpClient.newHttpClient();
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() != 200) {
+                throw new RuntimeException("Gemini API returned " + response.statusCode() + ": " + response.body());
+            }
+
+            // Parse clean summary
+            JSONObject json = new JSONObject(response.body());
+            String summary = json
+                    .getJSONArray("candidates")
+                    .getJSONObject(0)
+                    .getJSONObject("content")
+                    .getJSONArray("parts")
+                    .getJSONObject(0)
+                    .getString("text");
+
+            return summary.trim();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "Summary generation failed: " + e.getMessage();
+        }
+    }
 }
