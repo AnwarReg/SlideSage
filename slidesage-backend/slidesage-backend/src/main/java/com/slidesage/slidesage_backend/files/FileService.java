@@ -130,7 +130,7 @@ public class FileService {
     @Transactional
     public FileDetailResp generateSummary(UUID fileId, UUID userId) {
         // Step 1: Fetch file for this user
-        FileEntity file = fileRepository.findByIdAndUserId(fileId, userId)
+        FileEntity file = fileRepository.findEntityByIdAndUserId(fileId, userId)
                 .orElseThrow(() -> new RuntimeException("File not found for this user."));
 
         // Step 2: Check extracted text
