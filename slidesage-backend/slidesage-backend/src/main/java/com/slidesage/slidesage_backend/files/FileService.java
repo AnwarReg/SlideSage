@@ -188,7 +188,7 @@ public class FileService {
 
             // HTTP Request
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create("https://us-central1-aiplatform.googleapis.com/v1/projects/slidesage/locations/us-central1/publishers/google/models/gemini-1.5-flash:generateContent?key=" + geminiApiKey))
+                    .uri(URI.create("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + geminiApiKey))
                     .header("Content-Type", "application/json")
                     .POST(HttpRequest.BodyPublishers.ofString(payload))
                     .build();
