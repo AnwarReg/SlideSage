@@ -122,27 +122,37 @@ public class FileService {
 
     @Transactional
     public FileDetailResp generateSummary(UUID fileId, UUID userId) {
-        // Step 1: Fetch file for current user
+        // Step 1: Fetch file for this user
         FileEntity file = fileRepository.findByIdAndUserId(fileId, userId)
                 .orElseThrow(() -> new RuntimeException("File not found for this user."));
 
-        // Step 2: Validate extracted text
+        // Step 2: Check extracted text
         String extractedText = file.getExtractedText();
         if (extractedText == null || extractedText.isBlank()) {
-            throw new RuntimeException("No extracted text found in this file.");
+            throw new RuntimeException("No extracted text available for summarization.");
         }
 
-        // Step 3: Generate summary with Gemini API
+        // Step 3: Generate the summary using Gemini
         String summary = summarizeWithGemini(extractedText);
 
-        // Step 4: Update DB entity
+        // Step 4: Update entity fields
         file.setSummary(summary);
         file.setUpdatedAt(Instant.now());
         fileRepository.save(file);
 
-        // Step 5: Return updated DTO
-        return new FileDetailResp(file);
+        // Step 5: Return DTO (manually map fields)
+        return new FileDetailResp(
+                file.getId(),
+                file.getStatus(),                       // assuming this is your TextStatus
+                file.getExtractedText() != null ? file.getExtractedText().length() : 0,
+                getPreview(file.getExtractedText()),    // helper method to shorten preview
+                file.getUpdatedAt(),
+                file.getSummary(),
+                file.getContentType(),
+                file.getSize()
+        );
     }
+
 
     private String buildPreview(String text) {
         if (text == null || text.isBlank()) return "";
