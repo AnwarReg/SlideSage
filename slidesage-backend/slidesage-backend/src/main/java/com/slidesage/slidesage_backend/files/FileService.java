@@ -180,7 +180,7 @@ public class FileService {
             String endpoint = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
 
 // Escape user text properly
-            String escapedText = textToSummarize
+            String escapedText = text
                     .replace("\"", "\\\"")  // escape quotes
                     .replace("\n", " ");     // flatten newlines if needed
 
