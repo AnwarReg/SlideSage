@@ -5,6 +5,7 @@ import com.slidesage.slidesage_backend.files.dto.ExtractTextResponse;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -23,6 +24,8 @@ import java.util.UUID;
 @Service
 public class FileService {
 
+    @Value("${gemini.api.key}")
+    private String geminiApiKey;
     private final FileRepository fileRepository;
 
     public FileService(FileRepository fileRepository) {
