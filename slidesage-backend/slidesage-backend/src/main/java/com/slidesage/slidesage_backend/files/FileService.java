@@ -120,6 +120,30 @@ public class FileService {
                 .orElseThrow(() -> new RuntimeException("File not found or not accessible"));
     }
 
+    @Transactional
+    public FileDetailResp generateSummary(UUID fileId, UUID userId) {
+        // Step 1: Fetch file for current user
+        FileEntity file = fileRepository.findByIdAndUserId(fileId, userId)
+                .orElseThrow(() -> new RuntimeException("File not found for this user."));
+
+        // Step 2: Validate extracted text
+        String extractedText = file.getExtractedText();
+        if (extractedText == null || extractedText.isBlank()) {
+            throw new RuntimeException("No extracted text found in this file.");
+        }
+
+        // Step 3: Generate summary with Gemini API
+        String summary = summarizeWithGemini(extractedText);
+
+        // Step 4: Update DB entity
+        file.setSummary(summary);
+        file.setUpdatedAt(Instant.now());
+        fileRepository.save(file);
+
+        // Step 5: Return updated DTO
+        return new FileDetailResp(file);
+    }
+
     private String buildPreview(String text) {
         if (text == null || text.isBlank()) return "";
         int maxLength = 600;
