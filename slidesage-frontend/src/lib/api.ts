@@ -182,7 +182,7 @@ export const filesApi = {
   },
 
   generateSummary: async (fileId: string): Promise<FileDetailResp> => {
-    const response = await fetch(`${API_BASE_URL}/files/${fileId}/ai/summary`, {
+    const response = await fetch(`${API_BASE_URL}/files/${fileId}/summary`, {
       method: 'POST',
     });
 
@@ -195,7 +195,7 @@ export const filesApi = {
   },
 
   generateQuiz: async (fileId: string): Promise<FileDetailResp> => {
-    const response = await fetch(`${API_BASE_URL}/files/${fileId}/ai/quiz`, {
+    const response = await fetch(`${API_BASE_URL}/files/${fileId}/quiz`, {
       method: 'POST',
     });
 
