@@ -8,6 +8,7 @@ import java.util.UUID;
 public interface FileRepository extends JpaRepository<FileEntity, UUID> {
 
     Optional<FileDetailProjection> findByIdAndUserId(UUID id, UUID userId);
+    Optional<FileEntity> findEntityByIdAndUserId(UUID id, UUID userId);
 
     // Return only the projection, not the whole entity
     List<FileItemProjection> findAllByUserIdOrderByUpdatedAtDesc(UUID userId);
