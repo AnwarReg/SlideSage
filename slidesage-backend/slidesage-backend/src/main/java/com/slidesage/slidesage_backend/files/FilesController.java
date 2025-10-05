@@ -46,7 +46,7 @@ public class FilesController {
 
     @PostMapping("/{id}/summary")
     public ResponseEntity<FileDetailResp> generateSummary(@PathVariable UUID id) {
-        UUID userId = CURRENT_USER_ID; // temporary, hardcoded for now
+        UUID userId = UUID.fromString("123e4567-e89b-12d3-a456-426614174000");// temporary, hardcoded for now
         FileDetailResp response = fileService.generateSummary(id, userId);
         return ResponseEntity.ok(response);
     }
