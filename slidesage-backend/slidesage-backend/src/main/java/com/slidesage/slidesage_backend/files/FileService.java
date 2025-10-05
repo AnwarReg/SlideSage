@@ -179,22 +179,27 @@ public class FileService {
 
             String endpoint = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
 
-            String payload = """
+// Escape user text properly
+            String escapedText = textToSummarize
+                    .replace("\"", "\\\"")  // escape quotes
+                    .replace("\n", " ");     // flatten newlines if needed
+
+            String payload = String.format("""
 {
   "contents": [
     {
       "parts": [
-        {"text": "Summarize this text: " + textToSummarize}
+        {"text": "Summarize this text: %s"}
       ]
     }
   ]
 }
-""";
+""", escapedText);
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(endpoint))
                     .header("Content-Type", "application/json")
-                    .header("x-goog-api-key", geminiApiKey.trim()) // ✅ correct header
+                    .header("x-goog-api-key", geminiApiKey.trim())
                     .POST(HttpRequest.BodyPublishers.ofString(payload))
                     .build();
 
@@ -204,6 +209,8 @@ public class FileService {
             if (response.statusCode() != 200) {
                 throw new RuntimeException("Gemini API returned " + response.statusCode() + ": " + response.body());
             }
+
+            System.out.println(response.body());
 
             // Parse clean summary
             JSONObject json = new JSONObject(response.body());
