@@ -145,7 +145,7 @@ public class FileService {
                 file.getId(),
                 file.getStatus(),                       // assuming this is your TextStatus
                 file.getExtractedText() != null ? file.getExtractedText().length() : 0,
-                getPreview(file.getExtractedText()),    // helper method to shorten preview
+                buildPreview(file.getExtractedText()),    // helper method to shorten preview
                 file.getUpdatedAt(),
                 file.getSummary(),
                 file.getContentType(),
