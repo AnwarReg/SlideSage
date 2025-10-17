@@ -14,13 +14,13 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<String> register(@RequestBody UserDTO user) {
+    public ResponseEntity<String> register(@RequestBody com.slidesage.slidesage_backend.dto.UserDTO user) {
         authService.register(user.getEmail(), user.getPassword());
         return ResponseEntity.ok("User registered successfully");
     }
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody UserDTO user) {
+    public ResponseEntity<String> login(@RequestBody com.slidesage.slidesage_backend.dto.UserDTO user) {
         String token = authService.login(user.getEmail(), user.getPassword());
         return ResponseEntity.ok(token);
     }
