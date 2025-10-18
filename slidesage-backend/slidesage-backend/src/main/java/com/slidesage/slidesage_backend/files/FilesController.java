@@ -1,11 +1,15 @@
 package com.slidesage.slidesage_backend.files;
 
 import com.slidesage.slidesage_backend.files.dto.FileDetailResp;
-import org.springframework.transaction.annotation.Transactional;
+import com.slidesage.slidesage_backend.files.dto.ExtractTextResponse;
+import com.slidesage.slidesage_backend.auth.JwtUtil;
+import com.slidesage.slidesage_backend.auth.UserRepository;
+import com.slidesage.slidesage_backend.auth.User;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import com.slidesage.slidesage_backend.files.dto.ExtractTextResponse;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
@@ -16,40 +20,56 @@ import java.util.UUID;
 public class FilesController {
 
     private final FileService fileService;
+    private final JwtUtil jwtUtil;
+    private final UserRepository userRepository;
 
-    public FilesController(FileService fileService) {
+    public FilesController(FileService fileService, JwtUtil jwtUtil, UserRepository userRepository) {
         this.fileService = fileService;
+        this.jwtUtil = jwtUtil;
+        this.userRepository = userRepository;
+    }
+
+    private UUID extractUserIdFromToken(String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            throw new RuntimeException("Missing or invalid Authorization header");
+        }
+
+        String token = authHeader.substring(7);
+        String email = jwtUtil.extractUsername(token);
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        return user.getId();
     }
 
     @PostMapping
     public ResponseEntity<?> uploadFile(
-            @RequestParam("file") MultipartFile file) {
+            @RequestParam("file") MultipartFile file,
+            @RequestHeader("Authorization") String authHeader) {
 
-        // Delegate to service
-        ExtractTextResponse response = fileService.saveAndExtract(file);
-
-        // Return the DTO (status + id + preview, etc.)
+        UUID userId = extractUserIdFromToken(authHeader);
+        ExtractTextResponse response = fileService.saveAndExtract(file, userId);
         return ResponseEntity.ok(response);
     }
 
     @GetMapping
-    public List<FileItemProjection> getUserFiles() {
-        UUID hardcodedUserId = UUID.fromString("123e4567-e89b-12d3-a456-426614174000");
-        return fileService.getUserFiles(hardcodedUserId);
+    public List<FileItemProjection> getUserFiles(@RequestHeader("Authorization") String authHeader) {
+        UUID userId = extractUserIdFromToken(authHeader);
+        return fileService.getUserFiles(userId);
     }
 
     @GetMapping("/{fileId}")
-    public FileDetailResp getFileDetails(@PathVariable UUID fileId) {
-        UUID hardcodedUserId = UUID.fromString("123e4567-e89b-12d3-a456-426614174000");
-        return fileService.getFileDetails(fileId, hardcodedUserId);
+    public FileDetailResp getFileDetails(@PathVariable UUID fileId,
+                                         @RequestHeader("Authorization") String authHeader) {
+        UUID userId = extractUserIdFromToken(authHeader);
+        return fileService.getFileDetails(fileId, userId);
     }
 
     @PostMapping("/{id}/summary")
-    public ResponseEntity<FileDetailResp> generateSummary(@PathVariable UUID id) {
-        UUID userId = UUID.fromString("123e4567-e89b-12d3-a456-426614174000");// temporary, hardcoded for now
+    public ResponseEntity<FileDetailResp> generateSummary(@PathVariable UUID id,
+                                                          @RequestHeader("Authorization") String authHeader) {
+        UUID userId = extractUserIdFromToken(authHeader);
         FileDetailResp response = fileService.generateSummary(id, userId);
         return ResponseEntity.ok(response);
     }
-
-
 }

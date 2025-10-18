@@ -5,20 +5,26 @@ export default function DashboardPage() {
   const navigate = useNavigate();
   const isAuthenticated = !!localStorage.getItem('token');
   
-  // Get real user from localStorage or show default if not found
+
+
+  // Get user from localStorage or use fallback if authenticated
   const getUserFromStorage = () => {
     try {
       const userStr = localStorage.getItem('user');
-      if (userStr) {
+      if (userStr && userStr !== 'undefined' && userStr !== 'null') {
         return JSON.parse(userStr);
       }
     } catch (error) {
       console.error('Error parsing user from localStorage:', error);
     }
-    return null;
+    // Fallback user if no user data found but we have a token
+    return {
+      email: 'User',
+      id: 'logged-in-user'
+    };
   };
 
-  const user = getUserFromStorage();
+  const user = isAuthenticated ? getUserFromStorage() : null;
 
   useEffect(() => {
     // Redirect to login if not authenticated
@@ -33,13 +39,13 @@ export default function DashboardPage() {
     navigate('/');
   };
 
-  // Show loading if no user data (shouldn't happen with proper auth)
-  if (!user) {
+  // Only show loading if not authenticated (will redirect anyway)
+  if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading user information...</p>
+          <p className="text-gray-600">Redirecting...</p>
         </div>
       </div>
     );
