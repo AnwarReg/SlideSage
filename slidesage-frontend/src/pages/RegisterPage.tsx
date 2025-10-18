@@ -21,73 +21,15 @@ export default function RegisterPage() {
     setLoading(true);
     setError('');
 
-    // Validate form inputs
-    if (!email || !password) {
-      setError('Please fill in all fields');
-      setLoading(false);
-      return;
-    }
-
     try {
-      console.log('Attempting registration for:', email);
-      console.log('Sending data:', { email, password: '***' });
-
-      const response = await fetch("http://localhost:8080/auth/register", {
-        method: 'POST',
-        headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json"
-        },
-        body: JSON.stringify({ email, password })
-      });
-
-      console.log('Registration response status:', response.status);
-
-      // Handle successful registration (200)
-      if (response.status === 200) {
-        const data = await response.json();
-        console.log('Registration successful:', data);
-        
-        // Store JWT token if provided in response
-        if (data.token) {
-          localStorage.setItem('token', data.token);
-        }
-        
-        // Show success message and redirect to login
-        setError(''); // Clear any previous errors
-        navigate('/login', { 
-          state: { 
-            message: 'Account created successfully! Please sign in.' 
-          } 
-        });
-        return;
-      }
-
-      // Handle specific error status codes
-      if (response.status === 409) {
-        setError('This email is already registered.');
-        return;
-      }
-
-      // Handle 400 or other errors - try to get backend error message
-      try {
-        const errorData = await response.json();
-        const backendMessage = errorData.message || errorData.error || `Registration failed with status ${response.status}`;
-        setError(backendMessage);
-      } catch {
-        // If can't parse JSON, use generic message
-        setError(`Registration failed with status ${response.status}`);
-      }
-
-    } catch (error) {
-      console.error('Registration network error:', error);
+      await authApi.register(email, password);
       
-      // Handle network errors
-      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
-        setError('Network error, please try again.');
-      } else {
-        setError('Network error, please try again.');
-      }
+      // Redirect to dashboard on success
+      navigate('/dashboard');
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Registration failed';
+      setError(errorMessage);
+      console.error('Registration error:', error);
     } finally {
       setLoading(false);
     }

@@ -222,119 +222,53 @@ export const authApi = {
   // User login
   login: async (email: string, password: string): Promise<AuthResponse> => {
     console.log('Attempting login for:', email);
-    console.log('Login URL:', `${AUTH_BASE_URL}/auth/login`);
     
-    try {
-      const response = await fetch(`${AUTH_BASE_URL}/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
+    const response = await fetch(`${AUTH_BASE_URL}/auth/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email, password }),
+    });
 
-      console.log('Login response status:', response.status);
-
-      // Handle successful response (200)
-      if (response.status === 200) {
-        const authResponse: AuthResponse = await response.json();
-        
-        // Store token and user info
-        authUtils.storeAuth(authResponse.token, authResponse.user);
-        
-        console.log('Login successful for user:', authResponse.user.email);
-        return authResponse;
-      }
-
-      // Handle specific error status codes
-      if (response.status === 401) {
-        throw new Error('Invalid email or password.');
-      }
-
-      if (response.status === 400) {
-        try {
-          const errorData = await response.json();
-          const errorMessage = errorData.message || errorData.error || 'Bad request';
-          throw new Error(errorMessage);
-        } catch {
-          throw new Error('Invalid request format.');
-        }
-      }
-
-      // Handle other error status codes
+    if (!response.ok) {
       const errorText = await response.text();
-      console.error('Login error response:', errorText);
-      throw new Error(`Login failed: ${response.status} ${response.statusText}`);
-
-    } catch (error) {
-      console.error('Login network error:', error);
-      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
-        throw new Error('Cannot connect to server. Please check if the backend is running on http://localhost:8080');
-      }
-      throw error;
+      throw new Error(`Login failed: ${response.status} ${response.statusText} - ${errorText}`);
     }
+
+    const authResponse: AuthResponse = await response.json();
+    
+    // Store token and user info
+    authUtils.storeAuth(authResponse.token, authResponse.user);
+    
+    console.log('Login successful for user:', authResponse.user.email);
+    return authResponse;
   },
 
   // User registration
   register: async (email: string, password: string): Promise<AuthResponse> => {
     console.log('Attempting registration for:', email);
-    console.log('Register URL:', `${AUTH_BASE_URL}/auth/register`);
     
-    try {
-      const response = await fetch(`${AUTH_BASE_URL}/auth/register`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
+    const response = await fetch(`${AUTH_BASE_URL}/auth/register`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email, password }),
+    });
 
-      console.log('Registration response status:', response.status);
-
-      // Handle successful response (200)
-      if (response.status === 200) {
-        const authResponse: AuthResponse = await response.json();
-        
-        // Store token and user info
-        authUtils.storeAuth(authResponse.token, authResponse.user);
-        
-        console.log('Registration successful for user:', authResponse.user.email);
-        return authResponse;
-      }
-
-      // Handle specific error status codes
-      if (response.status === 409) {
-        throw new Error('This email is already registered.');
-      }
-
-      if (response.status === 401) {
-        throw new Error('Invalid email or password.');
-      }
-
-      if (response.status === 400) {
-        try {
-          const errorData = await response.json();
-          const errorMessage = errorData.message || errorData.error || 'Bad request';
-          throw new Error(errorMessage);
-        } catch {
-          throw new Error('Invalid request format.');
-        }
-      }
-
-      // Handle other error status codes
+    if (!response.ok) {
       const errorText = await response.text();
-      console.error('Registration error response:', errorText);
-      throw new Error(`Registration failed: ${response.status} ${response.statusText}`);
-
-    } catch (error) {
-      console.error('Registration network error:', error);
-      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
-        throw new Error('Cannot connect to server. Please check if the backend is running on http://localhost:8080');
-      }
-      throw error;
+      throw new Error(`Registration failed: ${response.status} ${response.statusText} - ${errorText}`);
     }
+
+    const authResponse: AuthResponse = await response.json();
+    
+    // Store token and user info
+    authUtils.storeAuth(authResponse.token, authResponse.user);
+    
+    console.log('Registration successful for user:', authResponse.user.email);
+    return authResponse;
   },
 
   // User logout
