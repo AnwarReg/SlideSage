@@ -16,15 +16,18 @@ export default function HomePage() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
-              to="/files"
+              to="/dashboard"
               className="group bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-8 py-4 rounded-2xl font-bold text-lg shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 flex items-center space-x-3"
             >
-              <span className="text-2xl group-hover:animate-bounce">📁</span>
+              <span className="text-2xl group-hover:animate-bounce">�</span>
               <span>Get Started</span>
             </Link>
-            <button className="bg-white/50 backdrop-blur-sm border border-gray-200 text-gray-700 px-8 py-4 rounded-2xl font-semibold text-lg hover:bg-white/70 transition-all duration-300 hover:scale-105">
-              Learn More
-            </button>
+            <Link
+              to="/register"
+              className="bg-white/50 backdrop-blur-sm border border-gray-200 text-gray-700 px-8 py-4 rounded-2xl font-semibold text-lg hover:bg-white/70 transition-all duration-300 hover:scale-105"
+            >
+              Create Account
+            </Link>
           </div>
         </div>
 
@@ -59,7 +62,7 @@ export default function HomePage() {
             <h2 className="text-3xl font-bold text-gray-900 mb-4">Ready to transform your learning?</h2>
             <p className="text-gray-600 mb-8 text-lg">Join thousands of users who are already using AI to enhance their document analysis</p>
             <Link
-              to="/files"
+              to="/register"
               className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-8 py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 inline-flex items-center space-x-2"
             >
               <span>🚀</span>

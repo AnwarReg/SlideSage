@@ -90,10 +90,13 @@ const getFileTypeFromName = (filename: string): 'pdf' | 'pptx' | 'docx' => {
 };
 
 // Get API base URL from environment or use default
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080/api';
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
+
+// Authentication endpoints (without /api prefix as they're likely at root level)
+const AUTH_BASE_URL = process.env.REACT_APP_AUTH_BASE_URL || 'http://localhost:8080';
 
 // JWT Authentication utilities
-const TOKEN_KEY = 'slidesage_jwt_token';
+const TOKEN_KEY = 'token'; // Using 'token' key as requested
 const USER_KEY = 'slidesage_user';
 
 export const authUtils = {
@@ -219,53 +222,77 @@ export const authApi = {
   // User login
   login: async (email: string, password: string): Promise<AuthResponse> => {
     console.log('Attempting login for:', email);
+    console.log('Login URL:', `${AUTH_BASE_URL}/auth/login`);
     
-    const response = await fetch(`${API_BASE_URL}/auth/login`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email, password }),
-    });
+    try {
+      const response = await fetch(`${AUTH_BASE_URL}/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Login failed: ${response.status} ${response.statusText} - ${errorText}`);
+      console.log('Login response status:', response.status);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Login error response:', errorText);
+        throw new Error(`Login failed: ${response.status} ${response.statusText} - ${errorText}`);
+      }
+
+      const authResponse: AuthResponse = await response.json();
+      
+      // Store token and user info
+      authUtils.storeAuth(authResponse.token, authResponse.user);
+      
+      console.log('Login successful for user:', authResponse.user.email);
+      return authResponse;
+    } catch (error) {
+      console.error('Login network error:', error);
+      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+        throw new Error('Cannot connect to server. Please check if the backend is running on http://localhost:8080');
+      }
+      throw error;
     }
-
-    const authResponse: AuthResponse = await response.json();
-    
-    // Store token and user info
-    authUtils.storeAuth(authResponse.token, authResponse.user);
-    
-    console.log('Login successful for user:', authResponse.user.email);
-    return authResponse;
   },
 
   // User registration
   register: async (email: string, password: string): Promise<AuthResponse> => {
     console.log('Attempting registration for:', email);
+    console.log('Register URL:', `${AUTH_BASE_URL}/auth/register`);
     
-    const response = await fetch(`${API_BASE_URL}/auth/register`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email, password }),
-    });
+    try {
+      const response = await fetch(`${AUTH_BASE_URL}/auth/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Registration failed: ${response.status} ${response.statusText} - ${errorText}`);
+      console.log('Registration response status:', response.status);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Registration error response:', errorText);
+        throw new Error(`Registration failed: ${response.status} ${response.statusText} - ${errorText}`);
+      }
+
+      const authResponse: AuthResponse = await response.json();
+      
+      // Store token and user info
+      authUtils.storeAuth(authResponse.token, authResponse.user);
+      
+      console.log('Registration successful for user:', authResponse.user.email);
+      return authResponse;
+    } catch (error) {
+      console.error('Registration network error:', error);
+      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+        throw new Error('Cannot connect to server. Please check if the backend is running on http://localhost:8080');
+      }
+      throw error;
     }
-
-    const authResponse: AuthResponse = await response.json();
-    
-    // Store token and user info
-    authUtils.storeAuth(authResponse.token, authResponse.user);
-    
-    console.log('Registration successful for user:', authResponse.user.email);
-    return authResponse;
   },
 
   // User logout

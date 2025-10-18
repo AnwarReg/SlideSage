@@ -30,6 +30,13 @@ export default function Layout({ children }: LayoutProps) {
             {isLoggedIn ? (
               <>
                 <Link 
+                  to="/dashboard" 
+                  className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200 flex items-center space-x-1"
+                >
+                  <span>🏠</span>
+                  <span>Dashboard</span>
+                </Link>
+                <Link 
                   to="/files" 
                   className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200 flex items-center space-x-1"
                 >
@@ -57,12 +64,20 @@ export default function Layout({ children }: LayoutProps) {
                 </button>
               </>
             ) : (
-              <Link 
-                to="/login"
-                className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-2 rounded-lg font-medium hover:shadow-lg transition-all duration-200 hover:scale-105"
-              >
-                Login
-              </Link>
+              <div className="flex items-center space-x-4">
+                <Link 
+                  to="/login"
+                  className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200"
+                >
+                  Login
+                </Link>
+                <Link 
+                  to="/register"
+                  className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-2 rounded-lg font-medium hover:shadow-lg transition-all duration-200 hover:scale-105"
+                >
+                  Register
+                </Link>
+              </div>
             )}
           </div>
         </div>

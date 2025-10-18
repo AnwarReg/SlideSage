@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { authApi } from '../lib/api';
 
-export default function LoginPage() {
+export default function RegisterPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -16,20 +16,20 @@ export default function LoginPage() {
     }
   }, [navigate]);
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
 
     try {
-      await authApi.login(email, password);
+      await authApi.register(email, password);
       
       // Redirect to dashboard on success
       navigate('/dashboard');
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Login failed';
+      const errorMessage = error instanceof Error ? error.message : 'Registration failed';
       setError(errorMessage);
-      console.error('Login error:', error);
+      console.error('Registration error:', error);
     } finally {
       setLoading(false);
     }
@@ -44,10 +44,10 @@ export default function LoginPage() {
               <span className="text-3xl">📚</span>
             </div>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-2">
-              Welcome Back
+              Join SlideSage
             </h1>
             <p className="text-gray-600">
-              Sign in to your account
+              Create your account to get started with AI-powered document analysis
             </p>
           </div>
 
@@ -57,7 +57,7 @@ export default function LoginPage() {
             </div>
           )}
 
-          <form onSubmit={handleLogin} className="space-y-6">
+          <form onSubmit={handleRegister} className="space-y-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
               <input
@@ -78,10 +78,12 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                placeholder="Enter your password"
+                placeholder="Create a password"
                 required
                 disabled={loading}
+                minLength={6}
               />
+              <p className="text-xs text-gray-500 mt-1">Password must be at least 6 characters long</p>
             </div>
 
             <button
@@ -92,20 +94,20 @@ export default function LoginPage() {
               {loading ? (
                 <>
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                  <span>Signing In...</span>
+                  <span>Creating Account...</span>
                 </>
               ) : (
-                <span>Sign In</span>
+                <span>Create Account</span>
               )}
             </button>
           </form>
 
           <div className="mt-6 text-center">
             <Link
-              to="/register"
+              to="/login"
               className="text-blue-600 hover:text-blue-700 font-medium transition-colors"
             >
-              Don't have an account? Create one
+              Already have an account? Sign in
             </Link>
           </div>
 
