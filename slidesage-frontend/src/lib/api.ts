@@ -229,25 +229,44 @@ export const authApi = {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json',
         },
         body: JSON.stringify({ email, password }),
       });
 
       console.log('Login response status:', response.status);
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Login error response:', errorText);
-        throw new Error(`Login failed: ${response.status} ${response.statusText} - ${errorText}`);
+      // Handle successful response (200)
+      if (response.status === 200) {
+        const authResponse: AuthResponse = await response.json();
+        
+        // Store token and user info
+        authUtils.storeAuth(authResponse.token, authResponse.user);
+        
+        console.log('Login successful for user:', authResponse.user.email);
+        return authResponse;
       }
 
-      const authResponse: AuthResponse = await response.json();
-      
-      // Store token and user info
-      authUtils.storeAuth(authResponse.token, authResponse.user);
-      
-      console.log('Login successful for user:', authResponse.user.email);
-      return authResponse;
+      // Handle specific error status codes
+      if (response.status === 401) {
+        throw new Error('Invalid email or password.');
+      }
+
+      if (response.status === 400) {
+        try {
+          const errorData = await response.json();
+          const errorMessage = errorData.message || errorData.error || 'Bad request';
+          throw new Error(errorMessage);
+        } catch {
+          throw new Error('Invalid request format.');
+        }
+      }
+
+      // Handle other error status codes
+      const errorText = await response.text();
+      console.error('Login error response:', errorText);
+      throw new Error(`Login failed: ${response.status} ${response.statusText}`);
+
     } catch (error) {
       console.error('Login network error:', error);
       if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
@@ -267,25 +286,48 @@ export const authApi = {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json',
         },
         body: JSON.stringify({ email, password }),
       });
 
       console.log('Registration response status:', response.status);
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Registration error response:', errorText);
-        throw new Error(`Registration failed: ${response.status} ${response.statusText} - ${errorText}`);
+      // Handle successful response (200)
+      if (response.status === 200) {
+        const authResponse: AuthResponse = await response.json();
+        
+        // Store token and user info
+        authUtils.storeAuth(authResponse.token, authResponse.user);
+        
+        console.log('Registration successful for user:', authResponse.user.email);
+        return authResponse;
       }
 
-      const authResponse: AuthResponse = await response.json();
-      
-      // Store token and user info
-      authUtils.storeAuth(authResponse.token, authResponse.user);
-      
-      console.log('Registration successful for user:', authResponse.user.email);
-      return authResponse;
+      // Handle specific error status codes
+      if (response.status === 409) {
+        throw new Error('This email is already registered.');
+      }
+
+      if (response.status === 401) {
+        throw new Error('Invalid email or password.');
+      }
+
+      if (response.status === 400) {
+        try {
+          const errorData = await response.json();
+          const errorMessage = errorData.message || errorData.error || 'Bad request';
+          throw new Error(errorMessage);
+        } catch {
+          throw new Error('Invalid request format.');
+        }
+      }
+
+      // Handle other error status codes
+      const errorText = await response.text();
+      console.error('Registration error response:', errorText);
+      throw new Error(`Registration failed: ${response.status} ${response.statusText}`);
+
     } catch (error) {
       console.error('Registration network error:', error);
       if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
