@@ -1,6 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { authApi } from '../lib/api';
 
 export default function RegisterPage() {
   const [email, setEmail] = useState('');
@@ -9,27 +8,21 @@ export default function RegisterPage() {
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  // Redirect if already logged in
-  useEffect(() => {
-    if (authApi.isAuthenticated()) {
-      navigate('/dashboard');
-    }
-  }, [navigate]);
-
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
 
     try {
-      await authApi.register(email, password);
-      
-      // Redirect to dashboard on success
-      navigate('/dashboard');
+      // Simple mock registration for now
+      if (email && password) {
+        localStorage.setItem('token', 'mock-token');
+        navigate('/dashboard');
+      } else {
+        setError('Please enter email and password');
+      }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Registration failed';
-      setError(errorMessage);
-      console.error('Registration error:', error);
+      setError('Registration failed');
     } finally {
       setLoading(false);
     }

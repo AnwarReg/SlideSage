@@ -90,9 +90,9 @@ const getFileTypeFromName = (filename: string): 'pdf' | 'pptx' | 'docx' => {
 };
 
 // Get API base URL from environment or use default
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080/api';
 
-// Authentication endpoints (without /api prefix as they're likely at root level)
+// Authentication endpoints
 const AUTH_BASE_URL = process.env.REACT_APP_AUTH_BASE_URL || 'http://localhost:8080';
 
 // JWT Authentication utilities

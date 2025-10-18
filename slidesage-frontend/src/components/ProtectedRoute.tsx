@@ -1,12 +1,11 @@
 import { Navigate } from 'react-router-dom';
-import { authApi } from '../lib/api';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
 }
 
 export default function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const isAuthenticated = authApi.isAuthenticated();
+  const isAuthenticated = !!localStorage.getItem('token');
   
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
