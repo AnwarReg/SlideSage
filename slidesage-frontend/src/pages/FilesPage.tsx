@@ -1,18 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-
-interface FileItem {
-  id: string;
-  name: string;
-  uploadDate: string;
-  size: string;
-  type: 'pdf' | 'pptx' | 'docx';
-}
+import { filesApi, FileItem, UploadResp } from '../lib/api';
 
 export default function FilesPage() {
   const [files, setFiles] = useState<FileItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [uploadResult, setUploadResult] = useState<UploadResp | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Load files on component mount
@@ -22,24 +16,10 @@ export default function FilesPage() {
 
   const loadFiles = async () => {
     try {
-      // Mock files for now
-      const mockFiles: FileItem[] = [
-        {
-          id: '1',
-          name: 'Sample Document.pdf',
-          uploadDate: '2024-01-15',
-          size: '2.3 MB',
-          type: 'pdf'
-        },
-        {
-          id: '2', 
-          name: 'Research Paper.pdf',
-          uploadDate: '2024-01-14',
-          size: '4.1 MB',
-          type: 'pdf'
-        }
-      ];
-      setFiles(mockFiles);
+      console.log('Loading files from backend...');
+      const fileList = await filesApi.getFiles();
+      setFiles(fileList);
+      console.log('Files loaded:', fileList);
     } catch (error) {
       console.error('Failed to load files:', error);
     } finally {
@@ -56,17 +36,17 @@ export default function FilesPage() {
     if (!selectedFile) return;
 
     setUploading(true);
+    setUploadResult(null);
     
     try {
-      // Mock upload - just add to files list
-      const newFileItem: FileItem = {
-        id: Date.now().toString(),
-        name: selectedFile.name,
-        uploadDate: new Date().toISOString().split('T')[0],
-        size: (selectedFile.size / (1024 * 1024)).toFixed(1) + ' MB',
-        type: 'pdf'
-      };
-      setFiles(prev => [newFileItem, ...prev]);
+      console.log('Uploading file:', selectedFile.name);
+      const result = await filesApi.uploadFile(selectedFile);
+      setUploadResult(result);
+      
+      // Refresh files list after successful upload
+      await loadFiles();
+      
+      console.log('Upload successful:', result);
     } catch (error) {
       console.error('Upload failed:', error);
       alert('Upload failed. Please try again.');
@@ -134,6 +114,59 @@ export default function FilesPage() {
             </button>
           </div>
         </div>
+
+        {/* Upload Result Display */}
+        {uploadResult && (
+          <div className="mb-8 bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-200 rounded-2xl p-6 shadow-lg">
+            <div className="flex items-center mb-4">
+              <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center mr-4">
+                <span className="text-2xl">✅</span>
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-emerald-800">Upload Successful!</h3>
+                <p className="text-emerald-600">Your document has been processed</p>
+              </div>
+            </div>
+            <div className="grid md:grid-cols-2 gap-4 mb-6">
+              <div className="bg-white/60 backdrop-blur-sm rounded-xl p-4">
+                <div className="text-sm font-medium text-gray-600 mb-1">File ID</div>
+                <div className="font-mono text-sm text-gray-800 break-all">{uploadResult.id}</div>
+              </div>
+              <div className="bg-white/60 backdrop-blur-sm rounded-xl p-4">
+                <div className="text-sm font-medium text-gray-600 mb-1">Status</div>
+                <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+                  uploadResult.textStatus === 'READY' ? 'bg-emerald-100 text-emerald-800' :
+                  uploadResult.textStatus === 'EMPTY' ? 'bg-amber-100 text-amber-800' :
+                  uploadResult.textStatus === 'ERROR' ? 'bg-red-100 text-red-800' :
+                  'bg-gray-100 text-gray-800'
+                }`}>
+                  {uploadResult.textStatus}
+                </span>
+              </div>
+              <div className="bg-white/60 backdrop-blur-sm rounded-xl p-4">
+                <div className="text-sm font-medium text-gray-600 mb-1">Extracted Characters</div>
+                <div className="text-lg font-bold text-gray-800">{uploadResult.extractedChars.toLocaleString()}</div>
+              </div>
+            </div>
+            {uploadResult.preview && (
+              <div className="bg-white/60 backdrop-blur-sm rounded-xl p-4 mb-6">
+                <div className="text-sm font-medium text-gray-600 mb-2">Preview</div>
+                <div className="p-4 bg-white border rounded-lg text-gray-700 text-sm max-h-32 overflow-y-auto leading-relaxed">
+                  {uploadResult.preview}
+                </div>
+              </div>
+            )}
+            <div className="flex justify-center">
+              <Link
+                to={`/files/${uploadResult.id}`}
+                className="inline-flex items-center bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-8 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 space-x-2"
+              >
+                <span>🚀</span>
+                <span>Analyze Document</span>
+              </Link>
+            </div>
+          </div>
+        )}
 
         {/* Files Grid */}
         {files.length === 0 ? (

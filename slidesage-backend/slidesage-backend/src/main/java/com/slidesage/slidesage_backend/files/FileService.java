@@ -9,9 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-import org.json.JSONArray;
 import org.json.JSONObject;
-
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -26,6 +24,7 @@ public class FileService {
 
     @Value("${gemini.api.key}")
     private String geminiApiKey;
+
     private final FileRepository fileRepository;
 
     public FileService(FileRepository fileRepository) {
@@ -33,11 +32,11 @@ public class FileService {
     }
 
     /**
-     * MVP flow: validate -> extract text -> save one row -> return small DTO
+     * Save and extract PDF text for the authenticated user.
      */
     @Transactional
-    public ExtractTextResponse saveAndExtract(MultipartFile file) {
-        // 1) Validate
+    public ExtractTextResponse saveAndExtract(MultipartFile file, UUID userId) {
+        // 1) Validate file
         if (file == null || file.isEmpty()) {
             throw new IllegalArgumentException("No file uploaded.");
         }
@@ -54,7 +53,7 @@ public class FileService {
             throw new RuntimeException("Failed to read uploaded bytes.", e);
         }
 
-        // 3) Extract text (PDFBox)
+        // 3) Extract text using PDFBox
         String extracted;
         try (PDDocument doc = Loader.loadPDF(bytes)) {
             PDFTextStripper stripper = new PDFTextStripper();
@@ -63,17 +62,14 @@ public class FileService {
             throw new RuntimeException("Failed to extract text from PDF.", e);
         }
 
-        UUID hardcodedUserId = UUID.fromString("123e4567-e89b-12d3-a456-426614174000");
-
-        // 4) Build and save one entity (single write)
-        FileEntity entity = new FileEntity(file.getOriginalFilename(), bytes, hardcodedUserId);
+        // 4) Save entity for the authenticated user
+        FileEntity entity = new FileEntity(file.getOriginalFilename(), bytes, userId);
         entity.setExtractedText(extracted);
         entity.setStatus(extracted.isBlank() ? TextStatus.EMPTY : TextStatus.READY);
         entity.setContentType(file.getContentType());
-        entity.setSize(file.getSize()); // in bytes
+        entity.setSize(file.getSize());
 
-
-        FileEntity saved = fileRepository.save(entity); // id is generated here
+        FileEntity saved = fileRepository.save(entity);
 
         // 5) Build lightweight response
         String preview = preview(extracted, 600);
@@ -86,7 +82,7 @@ public class FileService {
         );
     }
 
-    // --- helpers ---
+    // --- Helpers ---
 
     private static String normalize(String s) {
         if (s == null) return "";
@@ -106,7 +102,6 @@ public class FileService {
     public List<FileItemProjection> getUserFiles(UUID userId) {
         return fileRepository.findAllByUserIdOrderByUpdatedAtDesc(userId);
     }
-
 
     @Transactional(readOnly = true)
     public FileDetailResp getFileDetails(UUID fileId, UUID userId) {
@@ -153,16 +148,15 @@ public class FileService {
         // Step 5: Return DTO (manually map fields)
         return new FileDetailResp(
                 file.getId(),
-                file.getStatus(),                       // assuming this is your TextStatus
+                file.getStatus(),
                 file.getExtractedText() != null ? file.getExtractedText().length() : 0,
-                buildPreview(file.getExtractedText()),    // helper method to shorten preview
+                buildPreview(file.getExtractedText()),
                 file.getUpdatedAt(),
                 file.getSummary(),
                 file.getContentType(),
                 file.getSize()
         );
     }
-
 
     private String buildPreview(String text) {
         if (text == null || text.isBlank()) return "";
@@ -172,17 +166,17 @@ public class FileService {
 
     private String summarizeWithGemini(String text) {
         try {
-            // Limit length for free API safety (optional)
+            // Limit text length for free API
             if (text.length() > 4000) {
                 text = text.substring(0, 4000);
             }
 
             String endpoint = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
 
-// Escape user text properly
+            // Escape text
             String escapedText = text
-                    .replace("\"", "\\\"")  // escape quotes
-                    .replace("\n", " ");     // flatten newlines if needed
+                    .replace("\"", "\\\"")
+                    .replace("\n", " ");
 
             String payload = String.format("""
 {
@@ -210,9 +204,6 @@ public class FileService {
                 throw new RuntimeException("Gemini API returned " + response.statusCode() + ": " + response.body());
             }
 
-            System.out.println(response.body());
-
-            // Parse clean summary
             JSONObject json = new JSONObject(response.body());
             String summary = json
                     .getJSONArray("candidates")

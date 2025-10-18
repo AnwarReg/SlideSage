@@ -5,26 +5,19 @@ export default function DashboardPage() {
   const navigate = useNavigate();
   const isAuthenticated = !!localStorage.getItem('token');
   
-
-
-  // Get user from localStorage or use fallback if authenticated
-  const getUserFromStorage = () => {
+  // Simple user info - just get email if available
+  const getUserEmail = () => {
     try {
       const userStr = localStorage.getItem('user');
-      if (userStr && userStr !== 'undefined' && userStr !== 'null') {
-        return JSON.parse(userStr);
+      if (userStr) {
+        const userData = JSON.parse(userStr);
+        return userData.email || 'User';
       }
     } catch (error) {
-      console.error('Error parsing user from localStorage:', error);
+      console.error('Error parsing user:', error);
     }
-    // Fallback user if no user data found but we have a token
-    return {
-      email: 'User',
-      id: 'logged-in-user'
-    };
+    return 'User';
   };
-
-  const user = isAuthenticated ? getUserFromStorage() : null;
 
   useEffect(() => {
     // Redirect to login if not authenticated
@@ -39,17 +32,7 @@ export default function DashboardPage() {
     navigate('/');
   };
 
-  // Only show loading if not authenticated (will redirect anyway)
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Redirecting...</p>
-        </div>
-      </div>
-    );
-  }
+  const userEmail = getUserEmail();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
@@ -58,7 +41,7 @@ export default function DashboardPage() {
         <div className="flex justify-between items-center mb-12">
           <div>
             <h1 className="text-4xl font-bold text-gray-900 mb-2">Welcome back!</h1>
-            <p className="text-gray-600 text-lg">Hello {user.email}, ready to analyze your documents?</p>
+            <p className="text-gray-600 text-lg">Hello {userEmail}, ready to analyze your documents?</p>
           </div>
           <button
             onClick={handleLogout}
@@ -135,8 +118,7 @@ export default function DashboardPage() {
             </div>
             <div>
               <h3 className="font-semibold text-gray-900">Account Information</h3>
-              <p className="text-gray-600">Logged in as: {user.email}</p>
-              <p className="text-gray-600 text-sm">User ID: {user.id}</p>
+              <p className="text-gray-600">Logged in as: {userEmail}</p>
             </div>
           </div>
         </div>
