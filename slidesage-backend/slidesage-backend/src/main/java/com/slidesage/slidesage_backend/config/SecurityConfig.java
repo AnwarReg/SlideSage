@@ -15,11 +15,11 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        // ✅ Allow CORS preflight requests
+                        // Allow CORS preflight requests
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        // ✅ Allow unauthenticated access to login/register
+                        // Allow unauthenticated access to login/register
                         .requestMatchers("/auth/**").permitAll()
-                        // 🔒 Everything else needs authentication
+                        // Everything else needs authentication
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
