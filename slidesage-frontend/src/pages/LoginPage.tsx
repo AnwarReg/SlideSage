@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { authApi } from '../lib/api';
 
 export default function LoginPage() {
@@ -7,7 +7,9 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const navigate = useNavigate();
+  const location = useLocation();
 
   // Redirect if already logged in
   useEffect(() => {
@@ -16,10 +18,20 @@ export default function LoginPage() {
     }
   }, [navigate]);
 
+  // Check for success message from registration
+  useEffect(() => {
+    if (location.state?.message) {
+      setSuccessMessage(location.state.message);
+      // Clear the message from location state
+      window.history.replaceState({}, document.title);
+    }
+  }, [location]);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
+    setSuccessMessage(''); // Clear success message when attempting login
 
     try {
       await authApi.login(email, password);
@@ -50,6 +62,12 @@ export default function LoginPage() {
               Sign in to your account
             </p>
           </div>
+
+          {successMessage && (
+            <div className="mb-6 bg-green-50 border border-green-200 rounded-lg p-4">
+              <p className="text-green-800 text-sm">{successMessage}</p>
+            </div>
+          )}
 
           {error && (
             <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
