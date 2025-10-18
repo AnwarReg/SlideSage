@@ -1,29 +1,27 @@
 import { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { authApi } from '../lib/api';
 
 export default function DashboardPage() {
   const navigate = useNavigate();
-  const user = authApi.getCurrentUser();
+  const isAuthenticated = !!localStorage.getItem('token');
+  
+  // Mock user for now
+  const user = { 
+    email: 'user@example.com', 
+    id: 'mock-user-id' 
+  };
 
   useEffect(() => {
     // Redirect to login if not authenticated
-    if (!authApi.isAuthenticated()) {
+    if (!isAuthenticated) {
       navigate('/login');
     }
-  }, [navigate]);
+  }, [navigate, isAuthenticated]);
 
   const handleLogout = () => {
-    authApi.logout();
+    localStorage.removeItem('token');
+    navigate('/');
   };
-
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
