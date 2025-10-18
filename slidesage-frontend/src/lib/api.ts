@@ -15,6 +15,25 @@ export interface FileDetailResp extends UploadResp {
   quiz: any;
 }
 
+// Authentication interfaces
+export interface AuthResponse {
+  token: string;
+  user: {
+    id: string;
+    email: string;
+  };
+}
+
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+export interface RegisterRequest {
+  email: string;
+  password: string;
+}
+
 // Legacy interfaces for backward compatibility
 export interface FileSummary {
   summary: string;
@@ -73,6 +92,100 @@ const getFileTypeFromName = (filename: string): 'pdf' | 'pptx' | 'docx' => {
 // Get API base URL from environment or use default
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080/api';
 
+// JWT Authentication utilities
+const TOKEN_KEY = 'slidesage_jwt_token';
+const USER_KEY = 'slidesage_user';
+
+export const authUtils = {
+  // Store JWT token and user info
+  storeAuth: (token: string, user: { id: string; email: string }) => {
+    localStorage.setItem(TOKEN_KEY, token);
+    localStorage.setItem(USER_KEY, JSON.stringify(user));
+  },
+
+  // Get stored JWT token
+  getToken: (): string | null => {
+    return localStorage.getItem(TOKEN_KEY);
+  },
+
+  // Get stored user info
+  getUser: (): { id: string; email: string } | null => {
+    const userStr = localStorage.getItem(USER_KEY);
+    return userStr ? JSON.parse(userStr) : null;
+  },
+
+  // Clear stored auth data
+  clearAuth: () => {
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(USER_KEY);
+  },
+
+  // Check if user is authenticated
+  isAuthenticated: (): boolean => {
+    return !!authUtils.getToken();
+  },
+
+  // Get authorization header
+  getAuthHeader: (): Record<string, string> => {
+    const token = authUtils.getToken();
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  },
+
+  // Redirect to login if not authenticated
+  requireAuth: () => {
+    if (!authUtils.isAuthenticated()) {
+      window.location.href = '/login';
+      throw new Error('Authentication required');
+    }
+  }
+};
+
+// Enhanced fetch wrapper that automatically includes JWT token
+const authenticatedFetch = async (url: string, options: RequestInit = {}): Promise<Response> => {
+  const authHeaders = authUtils.getAuthHeader();
+  
+  const response = await fetch(url, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...authHeaders,
+      ...options.headers,
+    },
+  });
+
+  // If unauthorized, clear auth and redirect to login
+  if (response.status === 401) {
+    authUtils.clearAuth();
+    window.location.href = '/login';
+    throw new Error('Authentication expired. Please log in again.');
+  }
+
+  return response;
+};
+
+// Enhanced fetch wrapper for multipart requests (file uploads)
+const authenticatedMultipartFetch = async (url: string, options: RequestInit = {}): Promise<Response> => {
+  const authHeaders = authUtils.getAuthHeader();
+  
+  const response = await fetch(url, {
+    ...options,
+    headers: {
+      ...authHeaders,
+      ...options.headers,
+      // Don't set Content-Type for multipart - let browser handle it
+    },
+  });
+
+  // If unauthorized, clear auth and redirect to login
+  if (response.status === 401) {
+    authUtils.clearAuth();
+    window.location.href = '/login';
+    throw new Error('Authentication expired. Please log in again.');
+  }
+
+  return response;
+};
+
 // Polling utility function
 const pollForStatus = async <T extends { summaryStatus?: string; quizStatus?: string }>(
   fileId: string,
@@ -81,7 +194,7 @@ const pollForStatus = async <T extends { summaryStatus?: string; quizStatus?: st
   intervalMs: number = 2000
 ): Promise<T> => {
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
-    const response = await fetch(`${API_BASE_URL}/files/${fileId}`);
+    const response = await authenticatedFetch(`${API_BASE_URL}/files/${fileId}`);
     if (!response.ok) {
       throw new Error(`Failed to get file details: ${response.statusText}`);
     }
@@ -101,13 +214,87 @@ const pollForStatus = async <T extends { summaryStatus?: string; quizStatus?: st
   throw new Error('Polling timeout - operation did not complete');
 };
 
+// Authentication API
+export const authApi = {
+  // User login
+  login: async (email: string, password: string): Promise<AuthResponse> => {
+    console.log('Attempting login for:', email);
+    
+    const response = await fetch(`${API_BASE_URL}/auth/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email, password }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Login failed: ${response.status} ${response.statusText} - ${errorText}`);
+    }
+
+    const authResponse: AuthResponse = await response.json();
+    
+    // Store token and user info
+    authUtils.storeAuth(authResponse.token, authResponse.user);
+    
+    console.log('Login successful for user:', authResponse.user.email);
+    return authResponse;
+  },
+
+  // User registration
+  register: async (email: string, password: string): Promise<AuthResponse> => {
+    console.log('Attempting registration for:', email);
+    
+    const response = await fetch(`${API_BASE_URL}/auth/register`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email, password }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Registration failed: ${response.status} ${response.statusText} - ${errorText}`);
+    }
+
+    const authResponse: AuthResponse = await response.json();
+    
+    // Store token and user info
+    authUtils.storeAuth(authResponse.token, authResponse.user);
+    
+    console.log('Registration successful for user:', authResponse.user.email);
+    return authResponse;
+  },
+
+  // User logout
+  logout: () => {
+    console.log('Logging out user');
+    authUtils.clearAuth();
+    window.location.href = '/login';
+  },
+
+  // Get current user
+  getCurrentUser: () => {
+    return authUtils.getUser();
+  },
+
+  // Check authentication status
+  isAuthenticated: () => {
+    return authUtils.isAuthenticated();
+  }
+};
+
 // API functions for Spring Boot backend
 export const filesApi = {
   getFiles: async (): Promise<FileItem[]> => {
+    authUtils.requireAuth();
+    
     try {
       console.log('Fetching files from:', `${API_BASE_URL}/files`);
       
-      const response = await fetch(`${API_BASE_URL}/files`);
+      const response = await authenticatedFetch(`${API_BASE_URL}/files`);
       
       if (!response.ok) {
         throw new Error(`Failed to fetch files: ${response.status} ${response.statusText}`);
@@ -140,6 +327,8 @@ export const filesApi = {
   },
 
   uploadFile: async (file: File): Promise<UploadResp> => {
+    authUtils.requireAuth();
+    
     console.log('Uploading file:', file.name, 'Size:', file.size, 'Type:', file.type);
     console.log('API URL:', `${API_BASE_URL}/files`);
      
@@ -149,10 +338,9 @@ export const filesApi = {
     console.log('FormData prepared with file only');
 
     try {
-      const response = await fetch(`${API_BASE_URL}/files`, {
+      const response = await authenticatedMultipartFetch(`${API_BASE_URL}/files`, {
         method: 'POST',
         body: formData,
-        // Don't set Content-Type - let browser handle multipart boundary
       });
 
       console.log('Response status:', response.status);
@@ -174,7 +362,9 @@ export const filesApi = {
   },
 
   getFileDetails: async (fileId: string): Promise<FileDetailResp> => {
-    const response = await fetch(`${API_BASE_URL}/files/${fileId}`);
+    authUtils.requireAuth();
+    
+    const response = await authenticatedFetch(`${API_BASE_URL}/files/${fileId}`);
     if (!response.ok) {
       throw new Error(`Failed to get file details: ${response.statusText}`);
     }
@@ -182,7 +372,9 @@ export const filesApi = {
   },
 
   generateSummary: async (fileId: string): Promise<FileDetailResp> => {
-    const response = await fetch(`${API_BASE_URL}/files/${fileId}/summary`, {
+    authUtils.requireAuth();
+    
+    const response = await authenticatedFetch(`${API_BASE_URL}/files/${fileId}/summary`, {
       method: 'POST',
     });
 
@@ -195,7 +387,9 @@ export const filesApi = {
   },
 
   generateQuiz: async (fileId: string): Promise<FileDetailResp> => {
-    const response = await fetch(`${API_BASE_URL}/files/${fileId}/quiz`, {
+    authUtils.requireAuth();
+    
+    const response = await authenticatedFetch(`${API_BASE_URL}/files/${fileId}/quiz`, {
       method: 'POST',
     });
 

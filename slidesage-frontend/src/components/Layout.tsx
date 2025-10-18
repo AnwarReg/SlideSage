@@ -1,4 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom';
+import { authApi } from '../lib/api';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -6,13 +7,11 @@ interface LayoutProps {
 
 export default function Layout({ children }: LayoutProps) {
   const navigate = useNavigate();
-  const isLoggedIn = localStorage.getItem('auth-token');
-  const userEmail = localStorage.getItem('user-email');
+  const isLoggedIn = authApi.isAuthenticated();
+  const user = authApi.getCurrentUser();
 
   const handleLogout = () => {
-    localStorage.removeItem('auth-token');
-    localStorage.removeItem('user-email');
-    navigate('/login');
+    authApi.logout();
   };
 
   return (
@@ -48,7 +47,7 @@ export default function Layout({ children }: LayoutProps) {
                   <div className="w-8 h-8 bg-gradient-to-br from-gray-200 to-gray-300 rounded-full flex items-center justify-center">
                     <span className="text-gray-600 text-sm">👤</span>
                   </div>
-                  <span className="text-sm text-gray-600 font-medium">{userEmail}</span>
+                  <span className="text-sm text-gray-600 font-medium">{user?.email}</span>
                 </div>
                 <button 
                   onClick={handleLogout}
