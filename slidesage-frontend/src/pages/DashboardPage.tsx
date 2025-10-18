@@ -5,11 +5,20 @@ export default function DashboardPage() {
   const navigate = useNavigate();
   const isAuthenticated = !!localStorage.getItem('token');
   
-  // Mock user for now
-  const user = { 
-    email: 'user@example.com', 
-    id: 'mock-user-id' 
+  // Get real user from localStorage or show default if not found
+  const getUserFromStorage = () => {
+    try {
+      const userStr = localStorage.getItem('user');
+      if (userStr) {
+        return JSON.parse(userStr);
+      }
+    } catch (error) {
+      console.error('Error parsing user from localStorage:', error);
+    }
+    return null;
   };
+
+  const user = getUserFromStorage();
 
   useEffect(() => {
     // Redirect to login if not authenticated
@@ -20,8 +29,21 @@ export default function DashboardPage() {
 
   const handleLogout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('user');
     navigate('/');
   };
+
+  // Show loading if no user data (shouldn't happen with proper auth)
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading user information...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">

@@ -8,8 +8,22 @@ export default function Layout({ children }: LayoutProps) {
   const navigate = useNavigate();
   const isLoggedIn = !!localStorage.getItem('token');
 
+  const getUserEmail = () => {
+    try {
+      const userStr = localStorage.getItem('user');
+      if (userStr) {
+        const user = JSON.parse(userStr);
+        return user.email || 'User';
+      }
+    } catch (error) {
+      console.error('Error parsing user from localStorage:', error);
+    }
+    return 'User';
+  };
+
   const handleLogout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('user');
     navigate('/');
   };
 
@@ -53,7 +67,7 @@ export default function Layout({ children }: LayoutProps) {
                   <div className="w-8 h-8 bg-gradient-to-br from-gray-200 to-gray-300 rounded-full flex items-center justify-center">
                     <span className="text-gray-600 text-sm">👤</span>
                   </div>
-                  <span className="text-sm text-gray-600 font-medium">User</span>
+                  <span className="text-sm text-gray-600 font-medium">{getUserEmail()}</span>
                 </div>
                 <button 
                   onClick={handleLogout}

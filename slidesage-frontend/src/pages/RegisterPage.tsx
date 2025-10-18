@@ -13,16 +13,83 @@ export default function RegisterPage() {
     setLoading(true);
     setError('');
 
+    // Basic validation
+    if (!email || !password) {
+      setError('Please fill in all fields');
+      setLoading(false);
+      return;
+    }
+
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters long');
+      setLoading(false);
+      return;
+    }
+
     try {
-      // Simple mock registration for now
-      if (email && password) {
-        localStorage.setItem('token', 'mock-token');
+      console.log('Attempting registration for:', email);
+      
+      const response = await fetch('http://localhost:8080/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      console.log('Registration response status:', response.status);
+
+      if (response.status === 200) {
+        // Registration successful
+        const data = await response.json();
+        console.log('Registration successful:', data);
+        
+        // Store token and user data if provided
+        if (data.token) {
+          localStorage.setItem('token', data.token);
+        }
+        if (data.user) {
+          localStorage.setItem('user', JSON.stringify(data.user));
+        }
+        
+        // Redirect to dashboard
         navigate('/dashboard');
-      } else {
-        setError('Please enter email and password');
+        return;
       }
+
+      // Handle specific error status codes
+      if (response.status === 409) {
+        setError('This email is already registered. Please try logging in instead.');
+        return;
+      }
+
+      if (response.status === 400) {
+        try {
+          const errorData = await response.json();
+          setError(errorData.message || errorData.error || 'Invalid registration data.');
+        } catch {
+          setError('Invalid registration data.');
+        }
+        return;
+      }
+
+      // Handle other errors
+      try {
+        const errorData = await response.json();
+        setError(errorData.message || errorData.error || `Registration failed (${response.status})`);
+      } catch {
+        setError(`Registration failed (${response.status})`);
+      }
+
     } catch (error) {
-      setError('Registration failed');
+      console.error('Registration network error:', error);
+      
+      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+        setError('Cannot connect to server. Please make sure the backend is running on http://localhost:8080');
+      } else {
+        setError('Network error. Please try again.');
+      }
     } finally {
       setLoading(false);
     }

@@ -13,16 +13,77 @@ export default function LoginPage() {
     setLoading(true);
     setError('');
 
+    // Basic validation
+    if (!email || !password) {
+      setError('Please fill in all fields');
+      setLoading(false);
+      return;
+    }
+
     try {
-      // Simple mock login for now
-      if (email && password) {
-        localStorage.setItem('token', 'mock-token');
+      console.log('Attempting login for:', email);
+      
+      const response = await fetch('http://localhost:8080/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      console.log('Login response status:', response.status);
+
+      if (response.status === 200) {
+        // Login successful
+        const data = await response.json();
+        console.log('Login successful:', data);
+        
+        // Store token and user data if provided
+        if (data.token) {
+          localStorage.setItem('token', data.token);
+        }
+        if (data.user) {
+          localStorage.setItem('user', JSON.stringify(data.user));
+        }
+        
+        // Redirect to dashboard
         navigate('/dashboard');
-      } else {
-        setError('Please enter email and password');
+        return;
       }
+
+      // Handle specific error status codes
+      if (response.status === 401) {
+        setError('Invalid email or password. Please check your credentials.');
+        return;
+      }
+
+      if (response.status === 400) {
+        try {
+          const errorData = await response.json();
+          setError(errorData.message || errorData.error || 'Invalid login data.');
+        } catch {
+          setError('Invalid login data.');
+        }
+        return;
+      }
+
+      // Handle other errors
+      try {
+        const errorData = await response.json();
+        setError(errorData.message || errorData.error || `Login failed (${response.status})`);
+      } catch {
+        setError(`Login failed (${response.status})`);
+      }
+
     } catch (error) {
-      setError('Login failed');
+      console.error('Login network error:', error);
+      
+      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+        setError('Cannot connect to server. Please make sure the backend is running on http://localhost:8080');
+      } else {
+        setError('Network error. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
