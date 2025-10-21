@@ -95,32 +95,28 @@ const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:808
 // Authentication endpoints
 const AUTH_BASE_URL = process.env.REACT_APP_AUTH_BASE_URL || 'http://localhost:8080';
 
-// JWT Authentication utilities
-const TOKEN_KEY = 'token'; // Using 'token' key as requested
-const USER_KEY = 'slidesage_user';
-
 export const authUtils = {
   // Store JWT token and user info
   storeAuth: (token: string, user: { id: string; email: string }) => {
-    localStorage.setItem(TOKEN_KEY, token);
-    localStorage.setItem(USER_KEY, JSON.stringify(user));
+    localStorage.setItem('token', token);
+    localStorage.setItem('user', JSON.stringify(user));
   },
 
   // Get stored JWT token
   getToken: (): string | null => {
-    return localStorage.getItem(TOKEN_KEY);
+    return localStorage.getItem('token');
   },
 
   // Get stored user info
   getUser: (): { id: string; email: string } | null => {
-    const userStr = localStorage.getItem(USER_KEY);
+    const userStr = localStorage.getItem('user');
     return userStr ? JSON.parse(userStr) : null;
   },
 
   // Clear stored auth data
   clearAuth: () => {
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(USER_KEY);
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
   },
 
   // Check if user is authenticated
@@ -131,6 +127,7 @@ export const authUtils = {
   // Get authorization header
   getAuthHeader: (): Record<string, string> => {
     const token = authUtils.getToken();
+    console.log('Getting auth header, token:', token ? 'present' : 'missing');
     return token ? { Authorization: `Bearer ${token}` } : {};
   },
 
@@ -147,13 +144,18 @@ export const authUtils = {
 const authenticatedFetch = async (url: string, options: RequestInit = {}): Promise<Response> => {
   const authHeaders = authUtils.getAuthHeader();
   
+  const headers = {
+    'Content-Type': 'application/json',
+    ...authHeaders,
+    ...options.headers,
+  };
+  
+  console.log('Making authenticated request to:', url);
+  console.log('Headers being sent:', headers);
+  
   const response = await fetch(url, {
     ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...authHeaders,
-      ...options.headers,
-    },
+    headers,
   });
 
   // If unauthorized, clear auth and redirect to login
@@ -170,13 +172,18 @@ const authenticatedFetch = async (url: string, options: RequestInit = {}): Promi
 const authenticatedMultipartFetch = async (url: string, options: RequestInit = {}): Promise<Response> => {
   const authHeaders = authUtils.getAuthHeader();
   
+  const headers = {
+    ...authHeaders,
+    ...options.headers,
+    // Don't set Content-Type for multipart - let browser handle it
+  };
+  
+  console.log('Making authenticated multipart request to:', url);
+  console.log('Headers being sent:', headers);
+  
   const response = await fetch(url, {
     ...options,
-    headers: {
-      ...authHeaders,
-      ...options.headers,
-      // Don't set Content-Type for multipart - let browser handle it
-    },
+    headers,
   });
 
   // If unauthorized, clear auth and redirect to login
@@ -402,48 +409,5 @@ export const filesApi = {
 
     // Start polling for completion
     return pollForStatus<FileDetailResp>(fileId, 'quizStatus');
-  },
-
-  // Legacy functions for backward compatibility
-  getSummary: async (fileId: string): Promise<FileSummary> => {
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    return {
-      summary: "This document covers advanced machine learning concepts including neural networks, deep learning architectures, and their practical applications in modern AI systems. The content explores both theoretical foundations and real-world implementations.",
-      keyPoints: [
-        "Neural networks form the backbone of modern AI",
-        "Deep learning requires large datasets for training",
-        "Practical applications span multiple industries",
-        "Understanding theory is crucial for implementation"
-      ],
-      wordCount: 1250
-    };
-  },
-
-  getKeyTerms: async (fileId: string): Promise<KeyTerms> => {
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    return {
-      terms: [
-        {
-          term: "Neural Network",
-          definition: "A computing system inspired by biological neural networks",
-          importance: "high"
-        },
-        {
-          term: "Deep Learning",
-          definition: "Machine learning using neural networks with multiple layers",
-          importance: "high"
-        },
-        {
-          term: "Backpropagation",
-          definition: "Algorithm for training neural networks by propagating errors backward",
-          importance: "medium"
-        },
-        {
-          term: "Gradient Descent",
-          definition: "Optimization algorithm used to minimize loss functions",
-          importance: "medium"
-        }
-      ]
-    };
   }
 };
