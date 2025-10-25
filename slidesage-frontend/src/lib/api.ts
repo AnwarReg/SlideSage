@@ -93,7 +93,8 @@ const getFileTypeFromName = (filename: string): 'pdf' | 'pptx' | 'docx' => {
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080/api';
 
 // Authentication endpoints
-const AUTH_BASE_URL = process.env.REACT_APP_AUTH_BASE_URL || 'http://localhost:8080';
+const AUTH_BASE_URL = process.env.REACT_APP_AUTH_BASE_URL || 'http://localhost:8080/api';
+
 
 export const authUtils = {
   // Store JWT token and user info
